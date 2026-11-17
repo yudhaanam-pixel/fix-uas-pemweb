@@ -85,7 +85,7 @@ export default function QueueDisplayPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between selection:bg-teal-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between selection:bg-blue-600 selection:text-white">
       {/* Top Header Bar */}
       <header className="border-b border-slate-800 bg-slate-900/90 px-6 py-4 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-4">
@@ -98,13 +98,13 @@ export default function QueueDisplayPage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 flex items-center justify-center font-black shadow-md">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/20">
               <Activity className="h-6 w-6 stroke-[2.5]" />
             </div>
             <div>
               <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                <span>KLINIK SEHAT UTAMA</span>
-                <span className="text-xs bg-teal-500/20 text-teal-400 border border-teal-500/30 px-2.5 py-0.5 rounded-full font-mono uppercase">
+                <span>RUMAH SAKIT & KLINIK ANAVERSE</span>
+                <span className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-mono uppercase">
                   MONITOR ANTREAN PASIEN
                 </span>
               </h1>
@@ -118,7 +118,7 @@ export default function QueueDisplayPage() {
         {/* Clock & Fullscreen Control */}
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <p className="text-xs text-teal-400 font-semibold">{currentDate}</p>
+            <p className="text-xs text-blue-400 font-semibold">{currentDate}</p>
             <p className="text-2xl font-black font-mono tracking-wider text-white">
               {currentTime} <span className="text-xs font-sans text-slate-400">WIB</span>
             </p>
@@ -128,7 +128,7 @@ export default function QueueDisplayPage() {
             <button
               onClick={playChime}
               title="Uji Suara Pemanggilan"
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-400 hover:text-teal-300 border border-slate-700 transition-colors"
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 border border-slate-700 transition-colors"
             >
               <Volume2 className="h-5 w-5" />
             </button>

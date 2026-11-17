@@ -300,7 +300,7 @@ export default function FrontOfficeWalkInPage() {
               <button
                 type="submit"
                 disabled={quotaCheck?.isFull || !selectedDoctorId}
-                className="w-full rounded-xl bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 text-white font-bold py-3 text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>

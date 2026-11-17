@@ -66,11 +66,12 @@ export default function DoctorDashboard() {
       setAppointments(all);
 
       // Auto select the first checked_in or in-examination patient
-      if (!selectedAppointment && all.length > 0) {
+      setSelectedAppointment((prev) => {
+        if (prev || all.length === 0) return prev;
         const active = all.find((a) => a.status === 'diperiksa' || a.status === 'check_in') || all[0];
-        setSelectedAppointment(active);
         setAnamnesis(active.complaint || '');
-      }
+        return active;
+      });
     };
 
     refreshData();
@@ -178,7 +179,7 @@ export default function DoctorDashboard() {
               className="h-16 w-16 rounded-2xl object-cover border border-slate-200 shrink-0"
             />
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
                 Ruang Praktik Dokter
               </span>
               <h1 className="text-xl font-black text-slate-900 mt-1">
@@ -192,7 +193,7 @@ export default function DoctorDashboard() {
 
           <div className="text-right">
             <p className="text-xs text-slate-400">Total Pasien Hari Ini</p>
-            <p className="text-2xl font-black text-teal-700">{appointments.length} Pasien</p>
+            <p className="text-2xl font-black text-blue-700">{appointments.length} Pasien</p>
           </div>
         </div>
 
@@ -222,7 +223,7 @@ export default function DoctorDashboard() {
                       onClick={() => handleSelectPatient(apt)}
                       className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-teal-50/70 border-teal-500 shadow-sm'
+                          ? 'bg-blue-50/70 border-blue-500 shadow-sm'
                           : 'bg-white border-slate-200 hover:border-slate-300'
                       }`}
                     >

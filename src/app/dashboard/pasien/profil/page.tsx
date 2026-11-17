@@ -205,7 +205,7 @@ export default function PatientProfilePage() {
           <div className="pt-4 flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 text-xs shadow-md transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
             >
               <Save className="h-4 w-4" />
               <span>Simpan Perubahan Data</span>

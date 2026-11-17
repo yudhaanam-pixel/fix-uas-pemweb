@@ -96,7 +96,7 @@ export default function AdminDepartmentsPage() {
 
           <button
             onClick={openAddModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2.5 text-xs shadow-md transition-all shrink-0"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Tambah Poliklinik Baru</span>
@@ -245,7 +245,7 @@ export default function AdminDepartmentsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold px-5 py-2.5 text-xs shadow-md"
+                    className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 text-xs shadow-md shadow-blue-500/20 cursor-pointer"
                   >
                     {editingDept ? 'Simpan Perubahan' : 'Tambah Poliklinik'}
                   </button>

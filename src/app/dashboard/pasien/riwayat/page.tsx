@@ -42,8 +42,8 @@ export default function PatientHistoryPage() {
         : allRecords;
       setMedicalRecords(patientRecords);
 
-      if (patientRecords.length > 0 && !selectedRecord) {
-        setSelectedRecord(patientRecords[0]);
+      if (patientRecords.length > 0) {
+        setSelectedRecord((prev) => prev ?? patientRecords[0]);
       }
     };
 
@@ -94,7 +94,7 @@ export default function PatientHistoryPage() {
                     }}
                     className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-teal-50/70 border-teal-500 shadow-sm'
+                        ? 'bg-blue-50/70 border-blue-500 shadow-sm'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
@@ -109,7 +109,7 @@ export default function PatientHistoryPage() {
                     </div>
 
                     <p className="font-bold text-sm text-slate-900">{apt.doctor?.title || 'Dokter Spesialis'}</p>
-                    <p className="text-xs text-teal-700">{apt.doctor?.specialization}</p>
+                    <p className="text-xs text-blue-700">{apt.doctor?.specialization}</p>
 
                     <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
                       <span className="flex items-center gap-1">

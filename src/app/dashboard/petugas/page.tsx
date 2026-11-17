@@ -104,7 +104,7 @@ export default function FrontOfficeDashboard() {
 
           <Link
             href="/dashboard/petugas/walk-in"
-            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2.5 text-xs shadow-md transition-all shrink-0"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
           >
             <UserPlus className="h-4 w-4" />
             <span>Pendaftaran Pasien Walk-in Baru</span>
@@ -259,7 +259,7 @@ export default function FrontOfficeDashboard() {
                             {apt.status === 'menunggu' && (
                               <button
                                 onClick={() => handleCheckIn(apt.id, apt.patient_name)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs cursor-pointer"
                                 title="Konfirmasi Kedatangan Pasien"
                               >
                                 <UserCheck className="h-3.5 w-3.5" />

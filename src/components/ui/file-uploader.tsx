@@ -64,8 +64,8 @@ export function FileUploader({
         onClick={() => fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
           isUploading
-            ? 'border-teal-400 bg-teal-50/50'
-            : 'border-slate-300 hover:border-teal-500 hover:bg-teal-50/20'
+            ? 'border-blue-400 bg-blue-50/50'
+            : 'border-slate-300 hover:border-blue-500 hover:bg-blue-50/20'
         }`}
       >
         <input
@@ -79,13 +79,13 @@ export function FileUploader({
 
         {isUploading ? (
           <div className="flex flex-col items-center justify-center space-y-2">
-            <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
-            <p className="text-sm font-semibold text-teal-800">Mengunggah ke Cloudflare R2...</p>
+            <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+            <p className="text-sm font-semibold text-blue-800">Mengunggah ke Cloudflare R2...</p>
             <p className="text-xs text-slate-500">Mohon tunggu sebentar</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center space-y-2">
-            <div className="h-11 w-11 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
+            <div className="h-11 w-11 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
               <UploadCloud className="h-6 w-6" />
             </div>
             <div>
@@ -94,7 +94,7 @@ export function FileUploader({
               </p>
               <p className="text-xs text-slate-500 mt-1">{helperText}</p>
             </div>
-            <div className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 border border-amber-200">
+            <div className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-800 border border-blue-200">
               Cloudflare R2 Object Storage
             </div>
           </div>

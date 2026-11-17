@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/ui/navbar';
 import { Footer } from '@/components/ui/footer';
 import { ClinicService } from '@/lib/clinic-service';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth, getRoleDashboardUrl } from '@/lib/auth-context';
 import { formatRupiah, getDayName, formatDateIndo } from '@/lib/utils';
 import { Department, Doctor, Schedule } from '@/types/database';
 import {
@@ -25,27 +25,41 @@ import {
   Tv,
   Users,
   X,
+  Star,
+  Award,
+  Building2,
+  FileText,
+  ChevronRight,
+  ChevronLeft,
+  Bed,
+  Microscope,
+  Pill,
+  Ambulance,
+  Eye,
+  Smile,
+  Baby,
+  UserCheck,
+  Ticket,
+  Printer,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
 
-  // Filter states for schedules
+  // Filter states for doctors & schedules
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>('all');
-  const [selectedDayFilter, setSelectedDayFilter] = useState<number>(1); // Default Senin
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedDayFilter, setSelectedDayFilter] = useState<number>(0); // 0 = Semua Hari
+  const [searchDoctorQuery, setSearchDoctorQuery] = useState<string>('');
 
-  // Quick Booking Modal State
+  // Booking Modal State
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingDeptId, setBookingDeptId] = useState('');
   const [bookingDoctorId, setBookingDoctorId] = useState('');
   const [bookingDate, setBookingDate] = useState('');
-  const [todayDateStr, setTodayDateStr] = useState('');
-  const [todayDisplayStr, setTodayDisplayStr] = useState('');
   const [patientName, setPatientName] = useState('');
   const [patientNik, setPatientNik] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
@@ -54,17 +68,16 @@ export default function HomePage() {
     queueCode: string;
     queueNumber: number;
     doctorName: string;
+    departmentName: string;
     room: string;
+    date: string;
+    patientName: string;
   } | null>(null);
 
   useEffect(() => {
     const now = new Date();
     const isoDate = now.toISOString().split('T')[0];
-    setTodayDateStr(isoDate);
     setBookingDate(isoDate);
-    setTodayDisplayStr(
-      now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })
-    );
 
     const loadData = () => {
       setDepartments(ClinicService.getDepartments().filter((d) => d.is_active));
@@ -77,7 +90,7 @@ export default function HomePage() {
     return () => window.removeEventListener('clinic_data_updated', loadData);
   }, []);
 
-  // Autofill user info if logged in as patient
+  // Autofill if logged in
   useEffect(() => {
     if (user) {
       setPatientName(user.full_name || '');
@@ -86,31 +99,42 @@ export default function HomePage() {
     }
   }, [user]);
 
-  // Filtered schedules
-  const filteredSchedules = schedules.filter((s) => {
-    const matchDay = selectedDayFilter === 0 || s.day_of_week === selectedDayFilter;
-    const matchDept =
-      selectedDeptFilter === 'all' || s.doctor?.department_id === selectedDeptFilter;
-    const matchQuery =
-      searchQuery.trim() === '' ||
-      s.doctor?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.doctor?.specialization.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchDay && matchDept && matchQuery;
-  });
+  // Open booking modal for specific doctor
+  const openBookingForDoctor = (doctor: Doctor) => {
+    setBookingDeptId(doctor.department_id);
+    setBookingDoctorId(doctor.id);
+    setBookedResult(null);
+    setBookingModalOpen(true);
+  };
 
-  const availableDoctorsForDept = bookingDeptId
+  const openGeneralBooking = () => {
+    setBookedResult(null);
+    if (departments.length > 0 && !bookingDeptId) {
+      setBookingDeptId(departments[0].id);
+    }
+    setBookingModalOpen(true);
+  };
+
+  // Doctors available for selected department in booking modal
+  const doctorsInBookingDept = bookingDeptId
     ? doctors.filter((d) => d.department_id === bookingDeptId)
     : doctors;
 
-  // Quota preview for selected doctor and date in booking modal
-  const selectedQuota = bookingDoctorId && bookingDate
-    ? ClinicService.checkDoctorQuota(bookingDoctorId, bookingDate)
-    : null;
+  // Selected doctor quota check
+  const selectedQuota =
+    bookingDoctorId && bookingDate
+      ? ClinicService.checkDoctorQuota(bookingDoctorId, bookingDate)
+      : null;
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingDoctorId || !patientName || !bookingDate) {
-      toast.error('Harap lengkapi semua kolom yang bertanda bintang (*)');
+      toast.error('Harap lengkapi poliklinik, dokter, nama, dan tanggal kunjungan.');
+      return;
+    }
+
+    if (patientNik && patientNik.length !== 16) {
+      toast.error('NIK harus 16 digit angka.');
       return;
     }
 
@@ -121,155 +145,151 @@ export default function HomePage() {
       patient_phone: patientPhone,
       doctor_id: bookingDoctorId,
       appointment_date: bookingDate,
-      complaint: complaint || 'Pemeriksaan rutin',
+      complaint: complaint || 'Pemeriksaan rutin / konsultasi medis',
     });
 
     if (res.success && res.appointment) {
+      const doc = doctors.find((d) => d.id === bookingDoctorId);
       setBookedResult({
         queueCode: res.appointment.queue_code,
         queueNumber: res.appointment.queue_number,
-        doctorName: res.appointment.doctor?.title || 'Dokter',
-        room: res.appointment.doctor?.room_number || 'Ruang Periksa',
+        doctorName: doc?.title || doc?.name || 'Dokter Spesialis',
+        departmentName: doc?.department?.name || 'Poliklinik',
+        room: doc?.room_number || 'Ruang Periksa',
+        date: bookingDate,
+        patientName: patientName,
       });
-      toast.success('Pendaftaran janji temu berhasil!');
+      toast.success('Pendaftaran kunjungan poliklinik berhasil!');
     } else {
-      toast.error(res.error || 'Gagal melakukan pendaftaran.');
+      toast.error(res.error || 'Gagal melakukan pendaftaran kunjungan.');
     }
   };
 
+  // Filtered doctors for Doctors & Schedules Section
+  const filteredDoctors = doctors.filter((doc) => {
+    const matchDept =
+      selectedDeptFilter === 'all' || doc.department_id === selectedDeptFilter;
+    const matchQuery =
+      searchDoctorQuery.trim() === '' ||
+      doc.name.toLowerCase().includes(searchDoctorQuery.toLowerCase()) ||
+      doc.specialization.toLowerCase().includes(searchDoctorQuery.toLowerCase());
+
+    if (selectedDayFilter === 0) {
+      return matchDept && matchQuery;
+    }
+
+    // Check if doctor has schedule on selected day
+    const docSchedules = schedules.filter(
+      (s) => s.doctor_id === doc.id && s.day_of_week === selectedDayFilter
+    );
+    return matchDept && matchQuery && docSchedules.length > 0;
+  });
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-white text-slate-800">
+      {/* Dynamic Navbar */}
+      <Navbar onOpenBooking={openGeneralBooking} />
 
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-teal-900 via-teal-950 to-slate-900 text-white py-16 lg:py-24">
-        {/* Subtle background glow */}
-        <div className="absolute top-0 right-1/4 -z-10 h-96 w-96 rounded-full bg-teal-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 -z-10 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
-
+      {/* ==================================================================== */}
+      {/* 1. HERO SECTION (2 Columns: Title, CTA left; High-res Medical Photo right) */}
+      {/* ==================================================================== */}
+      <section
+        id="beranda"
+        className="relative overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-blue-50/30 pt-10 pb-16 lg:pt-16 lg:pb-24 border-b border-blue-50"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 border border-teal-400/30 px-3.5 py-1.5 text-xs font-semibold text-teal-300">
-                <Sparkles className="h-4 w-4 text-teal-300 animate-spin" />
-                <span>SIM-Klinik Terakreditasi Paripurna Kemenkes RI</span>
+            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+              {/* Pill Badge */}
+              <div className="inline-flex items-center gap-2 rounded-full bg-blue-100/80 border border-blue-200/60 px-4 py-1.5 text-xs font-bold text-blue-700 shadow-xs">
+                <Heart className="h-3.5 w-3.5 fill-blue-600 text-blue-600" />
+                <span>Kesehatan Anda, Prioritas Kami</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-                Pelayanan Kesehatan Prima,{' '}
-                <span className="bg-gradient-to-r from-teal-300 via-emerald-300 to-teal-100 bg-clip-text text-transparent">
-                  Nyaman & Terintegrasi
-                </span>
+              {/* Big Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                Pelayanan Terbaik untuk{' '}
+                <span className="text-blue-600 underline decoration-blue-200 decoration-wavy decoration-2">
+                  Kesehatan
+                </span>{' '}
+                Anda dan Keluarga
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
-                Nikmati kemudahan pendaftaran poliklinik secara online, pantauan antrean real-time dari ponsel Anda, serta rekam medis terpadu dengan dokter spesialis berpengalaman.
+              {/* Description */}
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Kami hadir dengan layanan medis berkualitas, dokter berpengalaman, dan fasilitas modern
+                untuk memberikan perawatan terbaik dengan sistem registrasi & antrean digital terintegrasi.
               </p>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
-                <button
-                  onClick={() => {
-                    setBookedResult(null);
-                    setBookingModalOpen(true);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-6 py-3.5 text-sm shadow-lg shadow-teal-500/30 hover:scale-105 transition-all"
+              {/* CTAs */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                <a
+                  href="#layanan"
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-7 py-4 text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
-                  <Calendar className="h-4 w-4" />
-                  <span>Buat Janji Temu / Daftar Poli</span>
+                  <span>Lihat Layanan</span>
                   <ArrowRight className="h-4 w-4" />
-                </button>
+                </a>
 
-                <Link
-                  href="/antrean"
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-5 py-3.5 text-sm backdrop-blur-sm transition-all"
+                <button
+                  onClick={openGeneralBooking}
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-blue-200 bg-white hover:bg-blue-50 text-blue-700 font-bold px-7 py-4 text-sm sm:text-base shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
-                  <Tv className="h-4 w-4 text-emerald-400 animate-pulse" />
-                  <span>Pantau Antrean Live (TV Lobby)</span>
-                </Link>
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <span>Buat Janji Temu</span>
+                </button>
               </div>
 
-              {/* Key Highlights */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-800">
-                <div>
-                  <p className="text-2xl font-black text-teal-400">6+</p>
-                  <p className="text-xs text-slate-400">Poliklinik Lengkap</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-emerald-400">100%</p>
-                  <p className="text-xs text-slate-400">Rekam Medis Digital</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-teal-300">Live</p>
-                  <p className="text-xs text-slate-400">Antrean Real-time</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-emerald-300">24/7</p>
-                  <p className="text-xs text-slate-400">Layanan Darurat IGD</p>
-                </div>
+              {/* Micro assurance */}
+              <div className="flex items-center justify-center lg:justify-start gap-6 pt-3 text-xs text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  Pendaftaran Online 24 Jam
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  Nomor Antrean Real-Time
+                </span>
               </div>
             </div>
 
-            {/* Right Card: Quick Doctor Card & Live Status Preview */}
-            <div className="lg:col-span-5">
-              <div className="rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 p-6 shadow-2xl text-slate-100 space-y-6">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-3 w-3 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="font-bold text-sm tracking-wide">Pelayanan Hari Ini Aktif</span>
-                  </div>
-                  <span className="text-xs font-mono bg-teal-500/20 text-teal-300 px-2.5 py-1 rounded-full border border-teal-400/30">
-                    {todayDisplayStr || 'Aktif'}
-                  </span>
-                </div>
+            {/* Right Illustration Card */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative mx-auto max-w-md lg:max-w-none">
+                {/* Decorative background blur ring */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-blue-400/20 to-indigo-500/20 rounded-3xl blur-2xl -z-10" />
 
-                {/* Quick Antrean Banner */}
-                <div className="bg-gradient-to-br from-teal-900/80 to-slate-900/90 rounded-2xl p-4 border border-teal-500/30">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-teal-300 font-semibold uppercase">Sedang Diperiksa</p>
-                      <p className="text-3xl font-black text-white font-mono mt-0.5">UMU-002</p>
-                      <p className="text-xs text-slate-300 mt-1">Poli Umum • Ruang 101</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-slate-400">Berikutnya:</p>
-                      <p className="text-lg font-bold text-emerald-400 font-mono">UMU-003</p>
-                      <Link
-                        href="/antrean"
-                        className="text-[11px] text-teal-300 underline font-semibold mt-1 inline-block"
-                      >
-                        Buka Layar Penuh →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                {/* Hero Photo Container */}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+                  <img
+                    src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=900&auto=format&fit=crop&q=80"
+                    alt="Pelayanan Dokter Ramah dan Profesional"
+                    className="w-full h-[400px] sm:h-[460px] object-cover object-top hover:scale-105 transition-transform duration-500"
+                  />
 
-                {/* Doctor highlight preview */}
-                <div className="space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-teal-300">
-                    Dokter Praktik Unggulan:
-                  </p>
-                  <div className="space-y-2">
-                    {doctors.slice(0, 3).map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
-                      >
-                        <img
-                          src={doc.photo_url || ''}
-                          alt={doc.name}
-                          className="h-10 w-10 rounded-full object-cover border border-teal-400/40 shrink-0"
-                        />
-                        <div className="overflow-hidden flex-1">
-                          <p className="text-sm font-bold text-white truncate">{doc.title}</p>
-                          <p className="text-xs text-teal-200 truncate">{doc.specialization}</p>
-                        </div>
-                        <span className="text-[11px] font-mono font-bold text-emerald-400 shrink-0">
-                          {doc.room_number}
-                        </span>
+                  {/* Brand Tag Top Right */}
+                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-2 border border-blue-100">
+                    <Activity className="h-4 w-4 text-blue-600" />
+                    <span className="text-xs font-extrabold text-slate-900 tracking-tight">
+                      RUMAH SAKIT ANAVERSE
+                    </span>
+                  </div>
+
+                  {/* Floating Doctor Info Card Bottom */}
+                  <div className="absolute bottom-4 inset-x-4 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-blue-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                        <Stethoscope className="h-5 w-5" />
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">Konsultasi Dokter Ahli</p>
+                        <p className="text-[11px] text-slate-500">6 Poliklinik Spesialis Siap Melayani</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[11px] border border-emerald-200">
+                      Buka Hari Ini
+                    </span>
                   </div>
                 </div>
               </div>
@@ -278,127 +298,506 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* KEUNGGULAN KLINIK */}
-      <section className="py-16 bg-white border-b border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 mb-2">
-              Mengapa Memilih Kami?
-            </h2>
-            <p className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Standar Pelayanan Medis Modern & Terpercaya
-            </p>
-            <p className="text-slate-600 text-sm mt-3">
-              Klinik Sehat Utama memadukan keahlian tenaga medis berpengalaman dengan teknologi sistem informasi kesehatan terkini demi kenyamanan pasien.
-            </p>
+      {/* ==================================================================== */}
+      {/* 2. STATS BAR (4 White Rounded Cards) */}
+      {/* ==================================================================== */}
+      <section className="relative -mt-8 z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1 */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-lg shadow-blue-900/5 border border-blue-100/80 flex items-center gap-4 hover:border-blue-300 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">15+</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500">Dokter Spesialis</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-4">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <h3 className="font-bold text-base text-slate-900 mb-1.5">Akreditasi Paripurna</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Tersertifikasi resmi oleh Kementerian Kesehatan RI dengan kepatuhan standar mutu dan keselamatan pasien tertinggi.
-              </p>
+          {/* Card 2 */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-lg shadow-blue-900/5 border border-blue-100/80 flex items-center gap-4 hover:border-blue-300 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Heart className="h-6 w-6 fill-blue-600" />
             </div>
-
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6" />
-              </div>
-              <h3 className="font-bold text-base text-slate-900 mb-1.5">Antrean Cepat Real-time</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Daftar janji temu dari rumah dan pantau giliran Anda melalui monitor live tanpa perlu menunggu berjam-jam di ruang tunggu.
-              </p>
+            <div>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">25.000+</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500">Pasien Terlayani</p>
             </div>
+          </div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-4">
-                <Stethoscope className="h-6 w-6" />
-              </div>
-              <h3 className="font-bold text-base text-slate-900 mb-1.5">Rekam Medis Digital (RME)</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Pencatatan riwayat diagnosis, vital signs, resep obat, dan dokumen lab tersimpan rapi dan aman di cloud.
-              </p>
+          {/* Card 3 */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-lg shadow-blue-900/5 border border-blue-100/80 flex items-center gap-4 hover:border-blue-300 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Building2 className="h-6 w-6" />
             </div>
+            <div>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">6+ Layanan</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500">Poli & Rawat Medis</p>
+            </div>
+          </div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-md transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center mb-4">
-                <Heart className="h-6 w-6" />
-              </div>
-              <h3 className="font-bold text-base text-slate-900 mb-1.5">Pelayanan Ramah & Holistik</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Fasilitas ramah anak, ramah lansia, apotek terintegrasi, dan ruang tunggu ber-AC yang nyaman untuk keluarga Anda.
-              </p>
+          {/* Card 4 */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-lg shadow-blue-900/5 border border-blue-100/80 flex items-center gap-4 hover:border-blue-300 transition-all">
+            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">98%</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500">Kepuasan Pasien</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* LAYANAN & POLIKLINIK */}
-      <section id="layanan" className="py-16 bg-slate-50 border-b border-slate-200 scroll-mt-20">
+      {/* ==================================================================== */}
+      {/* 3. SECTION TENTANG KAMI & INFO OPERASIONAL */}
+      {/* ==================================================================== */}
+      <section id="tentang" className="py-20 lg:py-28 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-            <div>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 mb-1">
-                Layanan Kesehatan Kami
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            {/* Left: Clinic / Hospital Building Photo */}
+            <div className="lg:col-span-6 relative">
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border-4 border-slate-50">
+                <img
+                  src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=900&auto=format&fit=crop&q=80"
+                  alt="Gedung Rumah Sakit Anaverse"
+                  className="w-full h-[380px] sm:h-[450px] object-cover hover:scale-105 transition-transform duration-500"
+                />
+
+                {/* Building Badge */}
+                <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-lg border border-blue-100 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                    <Ambulance className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-extrabold text-slate-900">Armada Ambulans & IGD 24 Jam</p>
+                    <p className="text-[11px] text-slate-500">Siaga Penuh Cepat Tanggap Darurat</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Info, Alamat, Jam Operasional, & 4 Poin Keunggulan */}
+            <div className="lg:col-span-6 space-y-6">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3.5 py-1 text-xs font-bold text-blue-700">
+                <span>Tentang Kami</span>
+                <HelpCircle className="h-3 w-3" />
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Rumah Sakit & Klinik Anaverse <br className="hidden sm:inline" />
+                Untuk Hidup yang Lebih Sehat
               </h2>
-              <p className="text-3xl font-extrabold text-slate-900">
-                Daftar Poliklinik & Spesialisasi
+
+              <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
+                Rumah Sakit Anaverse berkomitmen memberikan pelayanan kesehatan profesional dengan standar
+                akreditasi Kemenkes RI, teknologi medis terkini, dokter spesialis berdedikasi, dan lingkungan
+                yang ramah serta nyaman bagi kesembuhan setiap pasien.
+              </p>
+
+              {/* Box Alamat Lokasi & Jam Operasional */}
+              <div className="rounded-2xl bg-blue-50/70 border border-blue-100 p-4 sm:p-5 space-y-3">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 uppercase">Alamat Lokasi Klinik:</p>
+                    <p className="text-sm text-slate-700">
+                      Jl. Graha Medika Prima No. 88, Kebayoran Baru, Jakarta Selatan 12870
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 pt-2 border-t border-blue-200/60">
+                  <Clock className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 uppercase">Jam Operasional Pelayanan:</p>
+                    <p className="text-sm text-slate-700">
+                      <strong>IGD & Ambulans:</strong> 24 Jam Nonstop | <strong>Poli Rawat Jalan:</strong> Senin - Sabtu (08:00 - 21:00 WIB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4 Poin Keunggulan (2x2 Grid) */}
+              <div className="grid grid-cols-2 gap-3.5 pt-2">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Pelayanan 24 Jam</p>
+                    <p className="text-[11px] text-slate-500">Siap melayani kebutuhan darurat</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <UserCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Tenaga Medis Profesional</p>
+                    <p className="text-[11px] text-slate-500">Dokter spesialis bersertifikasi SIP</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <Building2 className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Fasilitas Modern</p>
+                    <p className="text-[11px] text-slate-500">Peralatan medis canggih & akurat</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Perawatan Berkualitas</p>
+                    <p className="text-[11px] text-slate-500">Standar higienis paripurna</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================================================================== */}
+      {/* 4. SECTION LAYANAN KAMI (Grid of Cards with realistic photos & icons) */}
+      {/* ==================================================================== */}
+      <section id="layanan" className="py-20 bg-slate-50/70 border-y border-slate-200/60">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 block mb-1">
+                Layanan Unggulan
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Layanan Medis Kami
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 max-w-xl">
+                Menyediakan rangkaian pelayanan kesehatan primer hingga rujukan spesialis terpadu
+                untuk memenuhi kebutuhan kesehatan Anda.
               </p>
             </div>
-            <p className="text-sm text-slate-500 max-w-md">
-              Pilih poliklinik yang sesuai dengan kebutuhan medis Anda untuk berkonsultasi dengan dokter ahli kami.
-            </p>
+            <a
+              href="#jadwal"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:gap-2 transition-all"
+            >
+              <span>Lihat Semua Layanan & Jadwal</span>
+              <ArrowRight className="h-4 w-4" />
+            </a>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {departments.map((dept) => {
-              const deptDocs = doctors.filter((d) => d.department_id === dept.id);
-              const minFee = deptDocs.length > 0 ? Math.min(...deptDocs.map((d) => d.consultation_fee)) : 50000;
+          {/* Grid 6 Layanan (Matching Visual Mockup) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {/* 1. Poli Spesialis */}
+            <div
+              onClick={() => {
+                setSelectedDeptFilter('all');
+                document.getElementById('jadwal')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/80 transition-all cursor-pointer flex flex-col"
+            >
+              <div className="h-32 overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&auto=format&fit=crop&q=80"
+                  alt="Poli Spesialis"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-4 text-center relative flex-1 flex flex-col justify-between">
+                <div className="h-10 w-10 mx-auto -mt-9 rounded-xl bg-white shadow-md text-blue-600 flex items-center justify-center border border-blue-100 relative z-10">
+                  <Stethoscope className="h-5 w-5" />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Poli Spesialis
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Dokter ahli beragam spesialisasi</p>
+              </div>
+            </div>
+
+            {/* 2. Rawat Inap */}
+            <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/80 transition-all cursor-pointer flex flex-col">
+              <div className="h-32 overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&auto=format&fit=crop&q=80"
+                  alt="Rawat Inap"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-4 text-center relative flex-1 flex flex-col justify-between">
+                <div className="h-10 w-10 mx-auto -mt-9 rounded-xl bg-white shadow-md text-blue-600 flex items-center justify-center border border-blue-100 relative z-10">
+                  <Bed className="h-5 w-5" />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Rawat Inap
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Kamar nyaman & perawat siaga 24 jam</p>
+              </div>
+            </div>
+
+            {/* 3. IGD 24 Jam */}
+            <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/80 transition-all cursor-pointer flex flex-col">
+              <div className="h-32 overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=500&auto=format&fit=crop&q=80"
+                  alt="IGD 24 Jam"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+                <span className="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                  24 JAM
+                </span>
+              </div>
+              <div className="p-4 text-center relative flex-1 flex flex-col justify-between">
+                <div className="h-10 w-10 mx-auto -mt-9 rounded-xl bg-white shadow-md text-rose-600 flex items-center justify-center border border-rose-100 relative z-10">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
+                  IGD 24 Jam
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Gawat darurat respon cepat</p>
+              </div>
+            </div>
+
+            {/* 4. Radiologi */}
+            <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/80 transition-all cursor-pointer flex flex-col">
+              <div className="h-32 overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=500&auto=format&fit=crop&q=80"
+                  alt="Radiologi"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-4 text-center relative flex-1 flex flex-col justify-between">
+                <div className="h-10 w-10 mx-auto -mt-9 rounded-xl bg-white shadow-md text-blue-600 flex items-center justify-center border border-blue-100 relative z-10">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Radiologi
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Rontgen digital & USG resolusi tinggi</p>
+              </div>
+            </div>
+
+            {/* 5. Laboratorium */}
+            <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/80 transition-all cursor-pointer flex flex-col">
+              <div className="h-32 overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=500&auto=format&fit=crop&q=80"
+                  alt="Laboratorium"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-4 text-center relative flex-1 flex flex-col justify-between">
+                <div className="h-10 w-10 mx-auto -mt-9 rounded-xl bg-white shadow-md text-blue-600 flex items-center justify-center border border-blue-100 relative z-10">
+                  <Microscope className="h-5 w-5" />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Laboratorium
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Pemeriksaan darah, urine & kimia</p>
+              </div>
+            </div>
+
+            {/* 6. Farmasi */}
+            <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/80 transition-all cursor-pointer flex flex-col">
+              <div className="h-32 overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1586015555751-63c2c9545ec0?w=500&auto=format&fit=crop&q=80"
+                  alt="Farmasi"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-4 text-center relative flex-1 flex flex-col justify-between">
+                <div className="h-10 w-10 mx-auto -mt-9 rounded-xl bg-white shadow-md text-blue-600 flex items-center justify-center border border-blue-100 relative z-10">
+                  <Pill className="h-5 w-5" />
+                </div>
+                <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Farmasi
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Apotek obat paten & racikan resmi</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================================================================== */}
+      {/* 5. SECTION DOKTER & JADWAL PRAKTIK (Carousel/Grid, Kuota, & Direct CTA) */}
+      {/* ==================================================================== */}
+      <section id="dokter" className="py-20 lg:py-28 bg-white">
+        <div id="jadwal" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 mb-2">
+                Dokter Kami
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Dokter Spesialis Berpengalaman
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 max-w-2xl">
+                Tim dokter kami siap memberikan perawatan medis terbaik untuk Anda dan keluarga.
+                Lihat jadwal praktik, status kuota, dan daftar langsung secara online.
+              </p>
+            </div>
+          </div>
+
+          {/* Interactive Filters: Department Pill Filters & Day Picker */}
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-8 space-y-4">
+            {/* Department Filter */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              <span className="text-xs font-bold text-slate-500 uppercase shrink-0">Poli:</span>
+              <button
+                onClick={() => setSelectedDeptFilter('all')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                  selectedDeptFilter === 'all'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                Semua Poliklinik ({doctors.length})
+              </button>
+              {departments.map((dept) => (
+                <button
+                  key={dept.id}
+                  onClick={() => setSelectedDeptFilter(dept.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                    selectedDeptFilter === dept.id
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  {dept.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Day of Week Filter */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200/60">
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                <span className="text-xs font-bold text-slate-500 uppercase mr-1">Hari:</span>
+                {[
+                  { val: 0, label: 'Semua Hari' },
+                  { val: 1, label: 'Senin' },
+                  { val: 2, label: 'Selasa' },
+                  { val: 3, label: 'Rabu' },
+                  { val: 4, label: 'Kamis' },
+                  { val: 5, label: 'Jumat' },
+                  { val: 6, label: 'Sabtu' },
+                ].map((d) => (
+                  <button
+                    key={d.val}
+                    onClick={() => setSelectedDayFilter(d.val)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                      selectedDayFilter === d.val
+                        ? 'bg-blue-700 text-white'
+                        : 'bg-white text-slate-600 hover:bg-slate-200/80 border border-slate-200'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Box */}
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="Cari dokter atau spesialis..."
+                  value={searchDoctorQuery}
+                  onChange={(e) => setSearchDoctorQuery(e.target.value)}
+                  className="w-full rounded-xl bg-white border border-slate-200 pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Grid of Doctor Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredDoctors.map((doc) => {
+              // Find doctor schedules
+              const docSchedules = schedules.filter((s) => s.doctor_id === doc.id);
+              const todayIso = new Date().toISOString().split('T')[0];
+              const quotaToday = ClinicService.checkDoctorQuota(doc.id, todayIso);
 
               return (
                 <div
-                  key={dept.id}
-                  className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-xs hover:shadow-md hover:border-teal-300 transition-all flex flex-col justify-between"
+                  key={doc.id}
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200 flex flex-col justify-between transition-all group"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-teal-50 text-teal-700 border border-teal-200">
-                        KODE: {dept.code}
-                      </span>
-                      <span className="text-xs font-semibold text-slate-500">
-                        {deptDocs.length} Dokter Praktik
-                      </span>
+                  <div>
+                    {/* Doctor Photo */}
+                    <div className="h-64 sm:h-72 overflow-hidden bg-slate-100 relative">
+                      <img
+                        src={doc.photo_url || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&q=80'}
+                        alt={doc.name}
+                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {/* Rating pill top right */}
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm border border-slate-100 flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-bold text-slate-800">4.9</span>
+                      </div>
+                      {/* Department pill bottom left */}
+                      <div className="absolute bottom-3 left-3 bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg">
+                        {doc.department?.name || 'Poli Spesialis'}
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-2">{dept.name}</h3>
-                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
-                        {dept.description}
+                    {/* Doctor Details */}
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-extrabold text-base text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {doc.title || doc.name}
+                      </h3>
+                      <p className="text-xs font-semibold text-blue-600">
+                        {doc.specialization}
                       </p>
-                    </div>
 
-                    <div className="pt-2">
-                      <p className="text-[11px] text-slate-400 uppercase font-semibold">Biaya Konsultasi Mulai:</p>
-                      <p className="text-base font-bold text-teal-700">{formatRupiah(minFee)}</p>
+                      {/* Schedule Summary */}
+                      <div className="pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-1">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <Clock className="h-3.5 w-3.5 text-slate-400" />
+                          <span>
+                            {docSchedules.length > 0
+                              ? docSchedules
+                                  .slice(0, 2)
+                                  .map((s) => `${getDayName(s.day_of_week)} (${s.start_time.slice(0, 5)})`)
+                                  .join(', ')
+                              : 'Senin - Jumat (08:00 - 14:00)'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] pt-1">
+                          <span className="text-slate-500">Ruang: {doc.room_number}</span>
+                          <span
+                            className={`font-bold ${
+                              quotaToday.isFull
+                                ? 'text-rose-600'
+                                : quotaToday.remaining <= 5
+                                ? 'text-amber-600'
+                                : 'text-emerald-600'
+                            }`}
+                          >
+                            {quotaToday.isFull
+                              ? 'Kuota Penuh'
+                              : `Sisa Kuota: ${quotaToday.remaining}/${quotaToday.quota}`}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="pt-5 mt-4 border-t border-slate-100">
+                  {/* Action CTA Button */}
+                  <div className="p-4 pt-0">
                     <button
-                      onClick={() => {
-                        setBookingDeptId(dept.id);
-                        setBookingDoctorId(deptDocs[0]?.id || '');
-                        setBookedResult(null);
-                        setBookingModalOpen(true);
-                      }}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-50 hover:bg-teal-600 text-teal-700 hover:text-white font-semibold py-2.5 px-4 text-xs transition-all"
+                      onClick={() => openBookingForDoctor(doc)}
+                      className="w-full rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-bold py-2.5 text-xs transition-all flex items-center justify-center gap-2 border border-blue-200 hover:border-transparent cursor-pointer"
                     >
-                      <span>Daftar ke Poli Ini</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Daftar Kunjungan</span>
                     </button>
                   </div>
                 </div>
@@ -408,484 +807,491 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* JADWAL DOKTER & KUOTA */}
-      <section id="jadwal" className="py-16 bg-white border-b border-slate-200 scroll-mt-20">
+      {/* ==================================================================== */}
+      {/* 6. SECTION FASILITAS MODERN (High-contrast medical facility showcase) */}
+      {/* ==================================================================== */}
+      <section className="py-16 bg-slate-900 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-10">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 mb-1">
-              Jadwal Praktik Dokter
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-400 block mb-2">
+              Fasilitas Terkini
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Fasilitas Modern untuk Perawatan Terbaik
             </h2>
-            <p className="text-3xl font-extrabold text-slate-900">
-              Informasi Waktu Pelayanan & Kuota
-            </p>
-            <p className="text-sm text-slate-600 mt-2">
-              Setiap sesi memiliki batas kuota harian untuk menjaga kualitas waktu pemeriksaan medis.
+            <p className="text-slate-400 text-sm mt-2">
+              Lingkungan nyaman dan peralatan canggih berstandar internasional untuk mendukung kesembuhan optimal.
             </p>
           </div>
 
-          {/* Filters Bar */}
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 mb-8 space-y-4">
-            {/* Day Selector */}
-            <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Pilih Hari Praktik:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 0, label: 'Semua Hari' },
-                  { id: 1, label: 'Senin' },
-                  { id: 2, label: 'Selasa' },
-                  { id: 3, label: 'Rabu' },
-                  { id: 4, label: 'Kamis' },
-                  { id: 5, label: 'Jumat' },
-                  { id: 6, label: 'Sabtu' },
-                ].map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setSelectedDayFilter(d.id)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      selectedDayFilter === d.id
-                        ? 'bg-teal-600 text-white shadow-xs'
-                        : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {/* Facility 1 */}
+            <div className="rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 relative group">
+              <div className="h-36 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=500&auto=format&fit=crop&q=80"
+                  alt="Ruang ICU"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-3 text-center">
+                <p className="text-xs font-bold text-white">Ruang ICU</p>
+                <p className="text-[10px] text-slate-400">Monitoring intensif</p>
               </div>
             </div>
 
-            {/* Department & Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Filter Poliklinik:
-                </label>
-                <select
-                  value={selectedDeptFilter}
-                  onChange={(e) => setSelectedDeptFilter(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-teal-600"
-                >
-                  <option value="all">Semua Poliklinik</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name} ({dept.code})
-                    </option>
-                  ))}
-                </select>
+            {/* Facility 2 */}
+            <div className="rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 relative group">
+              <div className="h-36 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&auto=format&fit=crop&q=80"
+                  alt="Kamar VIP"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
+              <div className="p-3 text-center">
+                <p className="text-xs font-bold text-white">Kamar VIP</p>
+                <p className="text-[10px] text-slate-400">Privasi & kenyamanan</p>
+              </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Cari Nama Dokter / Spesialisasi:
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Contoh: dr. Budi, Spesialis Anak..."
-                    className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-teal-600"
-                  />
-                  <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
-                </div>
+            {/* Facility 3 */}
+            <div className="rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 relative group">
+              <div className="h-36 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&auto=format&fit=crop&q=80"
+                  alt="Ruang Operasi"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-3 text-center">
+                <p className="text-xs font-bold text-white">Ruang Operasi</p>
+                <p className="text-[10px] text-slate-400">Steril laminar air flow</p>
+              </div>
+            </div>
+
+            {/* Facility 4 */}
+            <div className="rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 relative group">
+              <div className="h-36 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=500&auto=format&fit=crop&q=80"
+                  alt="Laboratorium"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-3 text-center">
+                <p className="text-xs font-bold text-white">Laboratorium</p>
+                <p className="text-[10px] text-slate-400">Hasil cepat & terpercaya</p>
+              </div>
+            </div>
+
+            {/* Facility 5 */}
+            <div className="rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 relative group col-span-2 md:col-span-1">
+              <div className="h-36 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=500&auto=format&fit=crop&q=80"
+                  alt="Ambulans 24 Jam"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-3 text-center">
+                <p className="text-xs font-bold text-white">Ambulans 24 Jam</p>
+                <p className="text-[10px] text-slate-400">Siaga antar-jemput</p>
               </div>
             </div>
           </div>
-
-          {/* Schedules Table / Cards */}
-          {filteredSchedules.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-12 text-center">
-              <Calendar className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700">Tidak ada jadwal ditemukan</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Silakan coba ganti pilihan hari atau poli lain.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSchedules.map((sch) => {
-                const doc = sch.doctor;
-                return (
-                  <div
-                    key={sch.id}
-                    className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs hover:border-teal-400 hover:shadow-md transition-all flex flex-col justify-between"
-                  >
-                    <div>
-                      {/* Top Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="inline-flex items-center rounded-lg bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-800 border border-teal-200">
-                          {getDayName(sch.day_of_week)}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-500 font-mono">
-                          {sch.start_time.slice(0, 5)} - {sch.end_time.slice(0, 5)} WIB
-                        </span>
-                      </div>
-
-                      {/* Doctor info */}
-                      <div className="flex items-start gap-3 my-3">
-                        <img
-                          src={doc?.photo_url || ''}
-                          alt={doc?.name || 'Dokter'}
-                          className="h-14 w-14 rounded-2xl object-cover border border-slate-200 shrink-0"
-                        />
-                        <div className="overflow-hidden">
-                          <p className="font-bold text-sm text-slate-900 leading-snug">{doc?.title}</p>
-                          <p className="text-xs text-teal-700 font-medium mt-0.5">{doc?.specialization}</p>
-                          <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                            SIP: {doc?.sip_number}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100 my-2">
-                        <div>
-                          <p className="text-slate-400 text-[10px] uppercase font-bold">Ruangan</p>
-                          <p className="font-semibold text-slate-800">{doc?.room_number}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400 text-[10px] uppercase font-bold">Kuota Harian</p>
-                          <p className="font-semibold text-emerald-700">{sch.quota_per_day} Pasien</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Tarif Konsultasi</p>
-                        <p className="text-xs font-bold text-slate-800">{formatRupiah(doc?.consultation_fee || 50000)}</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setBookingDeptId(doc?.department_id || '');
-                          setBookingDoctorId(doc?.id || '');
-                          setBookedResult(null);
-                          setBookingModalOpen(true);
-                        }}
-                        className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 text-xs shadow-xs transition-colors"
-                      >
-                        Pilih & Daftar
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </section>
 
-      {/* LOKASI & KONTAK */}
-      <section id="kontak" className="py-16 bg-slate-50 scroll-mt-20">
+      {/* ==================================================================== */}
+      {/* 7. SECTION BERITA & TIPS KESEHATAN (4 Cards matching mockup) */}
+      {/* ==================================================================== */}
+      <section className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-5 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 block mb-1">
+                Edukasi & Informasi
+              </span>
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                Berita & Tips Kesehatan
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer">
+              Lihat Semua Berita →
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Article 1 */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 mb-1">
-                  Lokasi & Akses
-                </h2>
-                <p className="text-3xl font-extrabold text-slate-900">
-                  Kunjungi Klinik Kami
-                </p>
-              </div>
-
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Lokasi strategis di pusat kota dengan akses mudah, area parkir luas, dan fasilitas ramah disabilitas.
-              </p>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-slate-200">
-                  <MapPin className="h-5 w-5 text-teal-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-sm text-slate-900">Alamat Lengkap</p>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Jl. Graha Medika Prima No. 88, Tebet, Jakarta Selatan 12870
-                    </p>
-                  </div>
+                <div className="h-44 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?w=500&auto=format&fit=crop&q=80"
+                    alt="Tips Jantung"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-slate-200">
-                  <Phone className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-sm text-slate-900">Hotline Resepsionis & Ambulans</p>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Telp: (021) 555-0199 | WhatsApp: 0812-3456-7890
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-slate-200">
-                  <Clock className="h-5 w-5 text-teal-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-sm text-slate-900">Jam Layanan</p>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Senin - Sabtu: 08:00 - 21:00 WIB • IGD 24 Jam Buka Setiap Hari
-                    </p>
-                  </div>
+                <div className="p-4 space-y-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                    Kesehatan Jantung
+                  </span>
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    Tips Menjaga Kesehatan Jantung Setiap Hari dengan Pola Hidup Seimbang
+                  </h3>
                 </div>
               </div>
+              <p className="px-4 pb-4 text-[11px] text-slate-400">18 Mei 2026</p>
             </div>
 
-            {/* Map Preview Card */}
-            <div className="lg:col-span-7">
-              <div className="rounded-3xl overflow-hidden border border-slate-300 shadow-md bg-white p-2">
-                <div className="h-80 w-full rounded-2xl bg-slate-100 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-teal-900/10 to-emerald-500/10 pointer-events-none" />
-                  <MapPin className="h-12 w-12 text-teal-600 animate-bounce mb-2" />
-                  <h3 className="font-bold text-base text-slate-900">Peta Navigasi Klinik Sehat Utama</h3>
-                  <p className="text-xs text-slate-500 max-w-sm mt-1">
-                    Jl. Graha Medika Prima No. 88 (500 meter dari Stasiun Tebet)
-                  </p>
-                  <a
-                    href="https://maps.google.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-teal-700"
-                  >
-                    Buka Petunjuk Arah di Google Maps
-                  </a>
+            {/* Article 2 */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between">
+              <div>
+                <div className="h-44 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=80"
+                    alt="Imunisasi Anak"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                    Anak
+                  </span>
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    Pentingnya Imunisasi untuk Anak Sejak Dini untuk Cegah Penyakit Berbahaya
+                  </h3>
                 </div>
               </div>
+              <p className="px-4 pb-4 text-[11px] text-slate-400">18 Mei 2026</p>
+            </div>
+
+            {/* Article 3 */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between">
+              <div>
+                <div className="h-44 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=500&auto=format&fit=crop&q=80"
+                    alt="Makanan Sehat"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                    Gaya Hidup
+                  </span>
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    Makanan Sehat untuk Gaya Hidup Seimbang dan Menjaga Imunitas Tubuh
+                  </h3>
+                </div>
+              </div>
+              <p className="px-4 pb-4 text-[11px] text-slate-400">16 Mei 2026</p>
+            </div>
+
+            {/* Article 4 */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between">
+              <div>
+                <div className="h-44 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=500&auto=format&fit=crop&q=80"
+                    alt="Perawatan Lansia"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                    Lansia
+                  </span>
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    Perawatan Terbaik untuk Orang Tersayang: Menjaga Kualitas Hidup Lansia
+                  </h3>
+                </div>
+              </div>
+              <p className="px-4 pb-4 text-[11px] text-slate-400">14 Mei 2026</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* QUICK BOOKING MODAL */}
+      {/* ==================================================================== */}
+      {/* 8. FOOTER & EMERGENCY BANNER */}
+      {/* ==================================================================== */}
+      <Footer onOpenBooking={openGeneralBooking} />
+
+      {/* ==================================================================== */}
+      {/* 9. INTERACTIVE APPOINTMENT BOOKING MODAL */}
+      {/* ==================================================================== */}
       {bookingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 relative my-8">
-            <button
-              onClick={() => setBookingModalOpen(false)}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            {bookedResult ? (
-              /* Success E-Ticket Preview */
-              <div className="text-center py-4 space-y-4">
-                <div className="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                  <CheckCircle2 className="h-8 w-8" />
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-2xl border border-blue-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur-xs flex items-center justify-center font-bold">
+                  <Calendar className="h-5 w-5" />
                 </div>
-
                 <div>
-                  <h3 className="text-xl font-black text-slate-900">Pendaftaran Berhasil!</h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Silakan simpan nomor antrean Anda di bawah ini
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50 border-2 border-teal-300 p-5 space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-teal-800">
-                    Nomor Antrean Anda
-                  </p>
-                  <p className="text-4xl font-black text-teal-900 font-mono">
-                    {bookedResult.queueCode}
-                  </p>
-                  <div className="pt-2 text-xs text-slate-600 space-y-1">
-                    <p>
-                      <strong>Dokter:</strong> {bookedResult.doctorName}
-                    </p>
-                    <p>
-                      <strong>Lokasi:</strong> {bookedResult.room}
-                    </p>
-                    <p>
-                      <strong>Tanggal:</strong> {formatDateIndo(bookingDate)}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-500">
-                  Tunjukkan nomor antrean ini kepada petugas resepsionis saat tiba di klinik untuk proses check-in.
-                </p>
-
-                <div className="flex gap-2 justify-center pt-2">
-                  <Link
-                    href="/dashboard/pasien"
-                    className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-teal-700"
-                  >
-                    Buka Dashboard Pasien
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setBookedResult(null);
-                      setBookingModalOpen(false);
-                    }}
-                    className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Tutup
-                  </button>
+                  <h3 className="text-base font-bold">Pendaftaran Kunjungan Online</h3>
+                  <p className="text-xs text-blue-100">Ambil nomor antrean poliklinik secara instan</p>
                 </div>
               </div>
-            ) : (
-              /* Booking Form */
-              <form onSubmit={handleBookingSubmit} className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    Form Pendaftaran Janji Temu Pasien
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Pilih poli, dokter, dan tentukan tanggal kunjungan Anda.
-                  </p>
-                </div>
+              <button
+                onClick={() => setBookingModalOpen(false)}
+                className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-                {/* Pilih Poli */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Pilih Poliklinik *
-                  </label>
-                  <select
-                    value={bookingDeptId}
-                    onChange={(e) => {
-                      setBookingDeptId(e.target.value);
-                      const docs = doctors.filter((d) => d.department_id === e.target.value);
-                      setBookingDoctorId(docs[0]?.id || '');
-                    }}
-                    required
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-teal-600"
-                  >
-                    <option value="">-- Pilih Poliklinik --</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Pilih Dokter */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Pilih Dokter Spesialis *
-                  </label>
-                  <select
-                    value={bookingDoctorId}
-                    onChange={(e) => setBookingDoctorId(e.target.value)}
-                    required
-                    disabled={!bookingDeptId}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-teal-600 disabled:bg-slate-100"
-                  >
-                    <option value="">-- Pilih Dokter --</option>
-                    {availableDoctorsForDept.map((doc) => (
-                      <option key={doc.id} value={doc.id}>
-                        {doc.title} ({doc.room_number})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Tanggal Kunjungan */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Tanggal Kunjungan *
-                  </label>
-                  <input
-                    type="date"
-                    min={todayDateStr}
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-teal-600"
-                  />
-                </div>
-
-                {/* Quota Indicator */}
-                {selectedQuota && (
-                  <div
-                    className={`p-3 rounded-xl border text-xs font-medium flex items-center justify-between ${
-                      selectedQuota.isFull
-                        ? 'bg-rose-50 border-rose-200 text-rose-800'
-                        : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    }`}
-                  >
-                    <span>Status Kuota Dokter Tanggal Ini:</span>
-                    <strong className="font-bold">
-                      {selectedQuota.isFull
-                        ? `Penuh (${selectedQuota.booked}/${selectedQuota.quota})`
-                        : `Tersisa ${selectedQuota.remaining} dari ${selectedQuota.quota} Kuota`}
-                    </strong>
+            {/* Modal Body */}
+            <div className="p-6">
+              {bookedResult ? (
+                /* TIKET ANTREAN BERHASIL */
+                <div className="text-center space-y-5">
+                  <div className="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner">
+                    <CheckCircle2 className="h-10 w-10" />
                   </div>
-                )}
-
-                {/* Data Pasien */}
-                <div className="space-y-3 pt-2 border-t border-slate-100">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Data Identitas Pasien
-                  </p>
-
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                    <h4 className="text-lg font-extrabold text-slate-900">Pendaftaran Berhasil!</h4>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Silakan tunjukkan nomor antrean ini kepada petugas loket saat tiba di klinik.
+                    </p>
+                  </div>
+
+                  {/* Tiket Fisik Digital */}
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-200 text-left space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-200/60 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest block">
+                          NOMOR ANTREAN ANDA
+                        </span>
+                        <p className="text-3xl font-black text-blue-700 tracking-tight">
+                          {bookedResult.queueCode}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-400 block">Antrean Ke:</span>
+                        <span className="text-2xl font-bold text-slate-800">
+                          #{bookedResult.queueNumber}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-slate-400 block">Poliklinik:</span>
+                        <span className="font-bold text-slate-800">{bookedResult.departmentName}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Dokter:</span>
+                        <span className="font-bold text-slate-800">{bookedResult.doctorName}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Tanggal:</span>
+                        <span className="font-bold text-slate-800">{formatDateIndo(bookedResult.date)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Ruang:</span>
+                        <span className="font-bold text-slate-800">{bookedResult.room}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-blue-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                      <span>Pasien: <strong>{bookedResult.patientName}</strong></span>
+                      <span className="text-blue-600 font-semibold">Status: Menunggu</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                    <Link
+                      href="/antrean"
+                      className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 text-xs text-center shadow-md transition-colors"
+                    >
+                      Pantau di Layar Antrean TV
+                    </Link>
+                    {user && (
+                      <Link
+                        href={getRoleDashboardUrl(user.role)}
+                        className="flex-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2.5 text-xs text-center transition-colors"
+                      >
+                        Buka Dashboard Pasien
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => setBookingModalOpen(false)}
+                      className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 text-xs"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* FORM PENDAFTARAN KUNJUNGAN */
+                <form onSubmit={handleBookingSubmit} className="space-y-4">
+                  {/* Poli */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Pilih Poliklinik *
+                    </label>
+                    <select
+                      value={bookingDeptId}
+                      onChange={(e) => {
+                        setBookingDeptId(e.target.value);
+                        setBookingDoctorId('');
+                      }}
+                      required
+                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    >
+                      <option value="">-- Pilih Poliklinik --</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name} ({d.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Dokter */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Pilih Dokter Spesialis *
+                    </label>
+                    <select
+                      value={bookingDoctorId}
+                      onChange={(e) => setBookingDoctorId(e.target.value)}
+                      required
+                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    >
+                      <option value="">-- Pilih Dokter --</option>
+                      {doctorsInBookingDept.map((doc) => (
+                        <option key={doc.id} value={doc.id}>
+                          {doc.title || doc.name} - {doc.specialization} ({doc.room_number})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Tanggal & Kuota Info */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Tanggal Kunjungan *
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={bookingDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => setBookingDate(e.target.value)}
+                        className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Status Kuota Harian
+                      </label>
+                      <div className="h-10 rounded-xl bg-blue-50/80 border border-blue-200 px-3 flex items-center justify-between text-xs">
+                        <span className="text-slate-600">Sisa Kuota:</span>
+                        {selectedQuota ? (
+                          <span
+                            className={`font-bold ${
+                              selectedQuota.isFull
+                                ? 'text-rose-600'
+                                : 'text-blue-700'
+                            }`}
+                          >
+                            {selectedQuota.isFull
+                              ? 'PENUH'
+                              : `${selectedQuota.remaining} / ${selectedQuota.quota}`}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">Pilih dokter</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Pasien */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                       Nama Lengkap Pasien *
                     </label>
                     <input
                       type="text"
+                      required
+                      placeholder="Nama sesuai KTP..."
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
-                      placeholder="Nama sesuai KTP"
-                      required
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         NIK (16 Digit)
                       </label>
                       <input
                         type="text"
                         maxLength={16}
+                        placeholder="3201010000000000"
                         value={patientNik}
-                        onChange={(e) => setPatientNik(e.target.value)}
-                        placeholder="3201..."
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        onChange={(e) => setPatientNik(e.target.value.replace(/\D/g, ''))}
+                        className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Nomor HP / WhatsApp
                       </label>
                       <input
                         type="tel"
+                        placeholder="081234567890"
                         value={patientPhone}
                         onChange={(e) => setPatientPhone(e.target.value)}
-                        placeholder="0812..."
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Keluhan Awal
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Keluhan / Alasan Kunjungan
                     </label>
                     <textarea
                       rows={2}
+                      placeholder="Contoh: Demam sejak kemarin, batuk pilek, konsultasi rutin..."
                       value={complaint}
                       onChange={(e) => setComplaint(e.target.value)}
-                      placeholder="Contoh: Demam sejak kemarin, sakit tenggorokan..."
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                      className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                     />
                   </div>
-                </div>
 
-                <div className="pt-3">
-                  <button
-                    type="submit"
-                    disabled={selectedQuota?.isFull}
-                    className="w-full rounded-xl bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 text-white font-bold py-3 text-xs shadow-md transition-all"
-                  >
-                    {selectedQuota?.isFull ? 'Kuota Penuh - Pilih Tanggal Lain' : 'Konfirmasi Pendaftaran & Dapatkan Nomor Antrean'}
-                  </button>
-                </div>
-              </form>
-            )}
+                  <div className="pt-2 flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBookingModalOpen(false)}
+                      className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={selectedQuota?.isFull}
+                      className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 text-xs shadow-md shadow-blue-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      Konfirmasi & Dapatkan Antrean
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       )}
-
-      <Footer />
     </div>
   );
 }

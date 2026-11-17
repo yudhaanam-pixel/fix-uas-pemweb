@@ -96,7 +96,7 @@ export function DashboardLayout({
       case 'dokter':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
-        return 'bg-teal-100 text-teal-800 border-teal-200';
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     }
   };
 
@@ -105,12 +105,12 @@ export function DashboardLayout({
       {/* Mobile Top Header */}
       <div className="lg:hidden flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
             <Activity className="h-5 w-5" />
           </div>
           <div>
             <span className="font-bold text-sm text-slate-900">SIM-Klinik</span>
-            <span className="block text-[10px] text-teal-700 font-semibold uppercase">{role}</span>
+            <span className="block text-[10px] text-blue-700 font-bold uppercase">{role || 'Tamu'}</span>
           </div>
         </div>
         <button
@@ -131,12 +131,12 @@ export function DashboardLayout({
           {/* Brand header */}
           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 text-white shadow-md shadow-teal-500/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
                 <Activity className="h-6 w-6 stroke-[2.5]" />
               </div>
               <div>
-                <span className="font-bold text-base text-slate-900 tracking-tight">Klinik Sehat</span>
-                <p className="text-[11px] text-slate-500">Panel Manajemen</p>
+                <span className="font-extrabold text-base text-slate-900 tracking-tight">Klinik Anaverse</span>
+                <p className="text-[11px] text-slate-500">Panel Manajemen Terpadu</p>
               </div>
             </Link>
             <button
@@ -148,9 +148,9 @@ export function DashboardLayout({
           </div>
 
           {/* User profile card */}
-          <div className="p-4 mx-3 my-3 rounded-2xl bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-100/80">
+          <div className="p-4 mx-3 my-3 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/50 border border-blue-100">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden bg-teal-100 border-2 border-white shadow-xs shrink-0 flex items-center justify-center font-bold text-teal-800">
+              <div className="h-10 w-10 rounded-full overflow-hidden bg-blue-100 border-2 border-white shadow-xs shrink-0 flex items-center justify-center font-bold text-blue-800">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={user.full_name} className="h-full w-full object-cover" />
                 ) : (
@@ -158,7 +158,7 @@ export function DashboardLayout({
                 )}
               </div>
               <div className="overflow-hidden">
-                <p className="text-sm font-bold text-slate-900 truncate">{user?.full_name || 'Pengguna'}</p>
+                <p className="text-sm font-bold text-slate-900 truncate">{user?.full_name || 'Pengguna Demo'}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span
                     className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getRoleBadgeStyle(
@@ -187,7 +187,7 @@ export function DashboardLayout({
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     isActive
-                      ? 'bg-teal-600 text-white shadow-sm shadow-teal-600/30 font-bold'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-bold'
                       : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
                   }`}
                 >
@@ -202,9 +202,9 @@ export function DashboardLayout({
           <div className="px-3 pt-4">
             <Link
               href="/antrean"
-              className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-teal-700 bg-teal-50/80 hover:bg-teal-100/70 border border-teal-200/60 transition-colors"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50/80 hover:bg-blue-100/70 border border-blue-200/60 transition-colors"
             >
-              <Tv className="h-4 w-4 text-teal-600 shrink-0" />
+              <Tv className="h-4 w-4 text-blue-600 shrink-0" />
               <span>Buka Layar Antrean (TV Lobby)</span>
             </Link>
           </div>
@@ -222,9 +222,9 @@ export function DashboardLayout({
                 <button
                   key={r}
                   onClick={() => loginAs(r)}
-                  className={`py-1 px-1.5 rounded-md text-[11px] font-semibold text-center uppercase tracking-tight transition-all ${
+                  className={`py-1 px-1.5 rounded-md text-[11px] font-semibold text-center uppercase tracking-tight transition-all cursor-pointer ${
                     role === r
-                      ? 'bg-teal-600 text-white shadow-xs'
+                      ? 'bg-blue-600 text-white shadow-xs'
                       : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
                   }`}
                 >
@@ -244,7 +244,7 @@ export function DashboardLayout({
             </Link>
             <button
               onClick={logout}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span>Keluar</span>
@@ -264,22 +264,22 @@ export function DashboardLayout({
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
         {!hasAccess ? (
-          <div className="p-8 max-w-2xl mx-auto my-12 bg-white rounded-2xl border border-rose-200 shadow-sm text-center">
+          <div className="p-8 max-w-2xl mx-auto my-12 bg-white rounded-3xl border border-rose-200 shadow-sm text-center">
             <div className="h-16 w-16 mx-auto rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
               <Shield className="h-8 w-8" />
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">Akses Terbatas</h2>
             <p className="text-slate-600 text-sm mb-6">
-              Halaman ini memerlukan peran{' '}
+              Halaman ini memerlukan hak akses peran{' '}
               <strong className="text-slate-900 uppercase">
                 {Array.isArray(requiredRole) ? requiredRole.join(' atau ') : requiredRole}
               </strong>
-              . Saat ini Anda masuk sebagai <strong className="text-teal-700 uppercase">{role || 'Tamu'}</strong>.
+              . Saat ini Anda masuk sebagai <strong className="text-blue-700 uppercase">{role || 'Tamu'}</strong>.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => loginAs(Array.isArray(requiredRole) ? requiredRole[0] : requiredRole || 'admin')}
-                className="rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700"
+                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
               >
                 Beralih ke Peran {Array.isArray(requiredRole) ? requiredRole[0].toUpperCase() : requiredRole?.toUpperCase()}
               </button>
@@ -298,4 +298,3 @@ export function DashboardLayout({
     </div>
   );
 }
-

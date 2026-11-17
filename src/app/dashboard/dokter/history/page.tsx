@@ -23,8 +23,8 @@ export default function DoctorHistoryPage() {
     );
     setRecords(allRecords);
 
-    if (allRecords.length > 0 && !selectedRecord) {
-      setSelectedRecord(allRecords[0]);
+    if (allRecords.length > 0) {
+      setSelectedRecord((prev) => prev ?? allRecords[0]);
     }
   }, [user]);
 
@@ -76,12 +76,12 @@ export default function DoctorHistoryPage() {
                     onClick={() => setSelectedRecord(rec)}
                     className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-teal-50/70 border-teal-500 shadow-sm'
+                        ? 'bg-blue-50/70 border-blue-500 shadow-sm'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-mono text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">
+                      <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
                         ICD: {rec.diagnosis_icd10 || 'J06.9'}
                       </span>
                       <span className="text-[11px] text-slate-400 font-mono">
@@ -104,7 +104,7 @@ export default function DoctorHistoryPage() {
             {selectedRecord ? (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
                     Detail Rekam Medis (SOAP)
                   </span>
                   <h2 className="text-xl font-black text-slate-900 mt-2">

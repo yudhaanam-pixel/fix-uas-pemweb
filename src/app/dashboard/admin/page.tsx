@@ -85,12 +85,12 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Total Pasien Hari Ini
               </span>
-              <div className="h-9 w-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                 <Users className="h-5 w-5" />
               </div>
             </div>
             <p className="text-3xl font-black text-slate-900">{stats?.totalPatientsToday || 0}</p>
-            <p className="text-[11px] text-teal-700 font-semibold flex items-center gap-1">
+            <p className="text-[11px] text-blue-700 font-semibold flex items-center gap-1">
               <TrendingUp className="h-3.5 w-3.5" /> Registrasi online & walk-in
             </p>
           </div>
