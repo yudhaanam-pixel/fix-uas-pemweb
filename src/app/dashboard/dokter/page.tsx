@@ -173,11 +173,17 @@ export default function DoctorDashboard() {
         {/* Doctor Banner */}
         <div className="rounded-3xl bg-white border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img
-              src={currentDoctor?.photo_url || ''}
-              alt={currentDoctor?.name || 'Dokter'}
-              className="h-16 w-16 rounded-2xl object-cover border border-slate-200 shrink-0"
-            />
+            {currentDoctor?.photo_url ? (
+              <img
+                src={currentDoctor.photo_url}
+                alt={currentDoctor?.name || 'Dokter'}
+                className="h-16 w-16 rounded-2xl object-cover border border-slate-200 shrink-0"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl border border-slate-200 shrink-0">
+                {(currentDoctor?.name || 'D').charAt(0).toUpperCase()}
+              </div>
+            )}
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
                 Ruang Praktik Dokter
@@ -221,11 +227,10 @@ export default function DoctorDashboard() {
                     <div
                       key={apt.id}
                       onClick={() => handleSelectPatient(apt)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                        isSelected
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
                           ? 'bg-blue-50/70 border-blue-500 shadow-sm'
                           : 'bg-white border-slate-200 hover:border-slate-300'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
