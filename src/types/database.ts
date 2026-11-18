@@ -9,6 +9,8 @@ export interface Profile {
   email: string | null;
   full_name: string;
   role: UserRole;
+  employee_code?: string | null; // Kode pegawai / ID akses (Dokter: 25xxx, Admin: 10xxx, Petugas: 30xxx)
+  kode_pegawai?: string | null;  // Alias bahasa Indonesia
   phone?: string | null;
   nik?: string | null;
   gender?: GenderType | null;
@@ -43,6 +45,7 @@ export interface Doctor {
   room_number: string;
   consultation_fee: number;
   photo_url?: string | null;
+  employee_code?: string | null;
   is_active: boolean;
   created_at?: string;
   // Joins

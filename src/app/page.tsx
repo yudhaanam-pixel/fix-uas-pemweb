@@ -652,11 +652,10 @@ export default function HomePage() {
               <span className="text-xs font-bold text-slate-500 uppercase shrink-0">Poli:</span>
               <button
                 onClick={() => setSelectedDeptFilter('all')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                  selectedDeptFilter === 'all'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${selectedDeptFilter === 'all'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                }`}
+                  }`}
               >
                 Semua Poliklinik ({doctors.length})
               </button>
@@ -664,11 +663,10 @@ export default function HomePage() {
                 <button
                   key={dept.id}
                   onClick={() => setSelectedDeptFilter(dept.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                    selectedDeptFilter === dept.id
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${selectedDeptFilter === dept.id
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                  }`}
+                    }`}
                 >
                   {dept.name}
                 </button>
@@ -691,11 +689,10 @@ export default function HomePage() {
                   <button
                     key={d.val}
                     onClick={() => setSelectedDayFilter(d.val)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                      selectedDayFilter === d.val
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${selectedDayFilter === d.val
                         ? 'bg-blue-700 text-white'
                         : 'bg-white text-slate-600 hover:bg-slate-200/80 border border-slate-200'
-                    }`}
+                      }`}
                   >
                     {d.label}
                   </button>
@@ -764,22 +761,21 @@ export default function HomePage() {
                           <span>
                             {docSchedules.length > 0
                               ? docSchedules
-                                  .slice(0, 2)
-                                  .map((s) => `${getDayName(s.day_of_week)} (${s.start_time.slice(0, 5)})`)
-                                  .join(', ')
+                                .slice(0, 2)
+                                .map((s) => `${getDayName(s.day_of_week)} (${s.start_time.slice(0, 5)})`)
+                                .join(', ')
                               : 'Senin - Jumat (08:00 - 14:00)'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-[11px] pt-1">
                           <span className="text-slate-500">Ruang: {doc.room_number}</span>
                           <span
-                            className={`font-bold ${
-                              quotaToday.isFull
+                            className={`font-bold ${quotaToday.isFull
                                 ? 'text-rose-600'
                                 : quotaToday.remaining <= 5
-                                ? 'text-amber-600'
-                                : 'text-emerald-600'
-                            }`}
+                                  ? 'text-amber-600'
+                                  : 'text-emerald-600'
+                              }`}
                           >
                             {quotaToday.isFull
                               ? 'Kuota Penuh'
@@ -1196,11 +1192,10 @@ export default function HomePage() {
                         <span className="text-slate-600">Sisa Kuota:</span>
                         {selectedQuota ? (
                           <span
-                            className={`font-bold ${
-                              selectedQuota.isFull
+                            className={`font-bold ${selectedQuota.isFull
                                 ? 'text-rose-600'
                                 : 'text-blue-700'
-                            }`}
+                              }`}
                           >
                             {selectedQuota.isFull
                               ? 'PENUH'

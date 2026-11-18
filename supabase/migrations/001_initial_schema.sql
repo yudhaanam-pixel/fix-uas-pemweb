@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     email TEXT,
     full_name TEXT NOT NULL,
     role user_role NOT NULL DEFAULT 'pasien',
+    employee_code VARCHAR(50), -- Kode Pegawai / ID Akses (Dokter: awalan 25, Admin: awalan 10, Petugas: awalan 30)
     phone TEXT,
     nik VARCHAR(16),
     gender gender_type,
@@ -184,12 +185,13 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  INSERT INTO public.profiles (id, email, full_name, role, employee_code)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'pasien'::user_role)
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'pasien'::user_role),
+    NEW.raw_user_meta_data->>'employee_code'
   );
   RETURN NEW;
 END;

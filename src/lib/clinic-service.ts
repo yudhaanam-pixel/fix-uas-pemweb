@@ -324,7 +324,28 @@ export const ClinicService = {
 
   // --- PROFILES & USER MANAGEMENT ---
   getProfiles(): Profile[] {
-    return getStorage<Profile[]>(STORAGE_KEYS.PROFILES, DEMO_PROFILES);
+    const profiles = getStorage<Profile[]>(STORAGE_KEYS.PROFILES, DEMO_PROFILES);
+    // Ensure all internal staff profiles have appropriate employee_code even if loaded from older localStorage
+    let updated = false;
+    const synced = profiles.map((p) => {
+      if (!p.employee_code && p.role !== 'pasien') {
+        const demo = DEMO_PROFILES.find((d) => d.id === p.id || d.email === p.email);
+        const code = demo?.employee_code || (p.role === 'admin' ? '10001' : p.role === 'petugas' ? '30001' : '25001');
+        updated = true;
+        return { ...p, employee_code: code, kode_pegawai: code };
+      }
+      return p;
+    });
+
+    if (updated && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(synced));
+      } catch {
+        // ignore
+      }
+    }
+
+    return synced;
   },
 
   getProfileById(id: string): Profile | undefined {

@@ -63,6 +63,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     room_number: 'Ruang 101',
     consultation_fee: 50000,
     photo_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&q=80',
+    employee_code: '25001',
     is_active: true,
   },
   {
@@ -76,6 +77,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     room_number: 'Ruang 102',
     consultation_fee: 80000,
     photo_url: 'https://images.unsplash.com/photo-1594824813515-783262fb2c86?w=400&q=80',
+    employee_code: '25002',
     is_active: true,
   },
   {
@@ -89,6 +91,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     room_number: 'Ruang 103',
     consultation_fee: 100000,
     photo_url: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&q=80',
+    employee_code: '25003',
     is_active: true,
   },
   {
@@ -102,6 +105,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     room_number: 'Ruang 104',
     consultation_fee: 120000,
     photo_url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80',
+    employee_code: '25004',
     is_active: true,
   },
   {
@@ -115,6 +119,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     room_number: 'Ruang 105',
     consultation_fee: 95000,
     photo_url: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80',
+    employee_code: '25005',
     is_active: true,
   },
   {
@@ -128,6 +133,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     room_number: 'Ruang 106',
     consultation_fee: 130000,
     photo_url: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=80',
+    employee_code: '25006',
     is_active: true,
   },
 ];
@@ -172,6 +178,8 @@ export const DEMO_PROFILES: Profile[] = [
     email: 'admin@kliniksehat.id',
     full_name: 'Drs. Supriyanto, M.Kes (Administrator)',
     role: 'admin',
+    employee_code: '10001',
+    kode_pegawai: '10001',
     phone: '081234567800',
     nik: '3201010101800001',
     gender: 'L',
@@ -184,6 +192,8 @@ export const DEMO_PROFILES: Profile[] = [
     email: 'petugas@kliniksehat.id',
     full_name: 'Dewi Lestari, A.Md.RMIK (Front Office)',
     role: 'petugas',
+    employee_code: '30001',
+    kode_pegawai: '30001',
     phone: '081234567801',
     nik: '3201010202950002',
     gender: 'P',
@@ -196,6 +206,8 @@ export const DEMO_PROFILES: Profile[] = [
     email: 'dokter.budi@kliniksehat.id',
     full_name: 'dr. Budi Santoso, Sp.KKLP',
     role: 'dokter',
+    employee_code: '25001',
+    kode_pegawai: '25001',
     phone: '081234567802',
     nik: '3201010303850003',
     gender: 'L',
@@ -209,6 +221,8 @@ export const DEMO_PROFILES: Profile[] = [
     email: 'pasien@kliniksehat.id',
     full_name: 'Rian Hidayat Kusuma',
     role: 'pasien',
+    employee_code: null,
+    kode_pegawai: null,
     phone: '081298765432',
     nik: '3201011504980004',
     gender: 'L',

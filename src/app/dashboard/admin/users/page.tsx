@@ -112,6 +112,11 @@ export default function AdminUsersPage() {
                       <div>
                         <p className="font-bold text-slate-900 text-sm">{u.full_name}</p>
                         <p className="text-slate-400 text-[11px] font-mono">{u.email || '-'}</p>
+                        {u.employee_code && (
+                          <span className="inline-block mt-1 text-[10px] font-mono font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                            Kode: {u.employee_code}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>

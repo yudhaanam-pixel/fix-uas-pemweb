@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -25,6 +25,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface NavItem {
   label: string;
@@ -41,17 +42,54 @@ export function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, role, logout, loginAs } = useAuth();
+  const { user, role, logout, loginAs, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Determine allowed roles
-  const allowedRoles = Array.isArray(requiredRole)
-    ? requiredRole
-    : requiredRole
-    ? [requiredRole]
-    : ['admin', 'petugas', 'dokter', 'pasien'];
+  // Inferred role requirement from pathname if requiredRole not explicitly set
+  const expectedRole: UserRole | UserRole[] = requiredRole || (
+    pathname.startsWith('/dashboard/admin')
+      ? 'admin'
+      : pathname.startsWith('/dashboard/dokter')
+      ? 'dokter'
+      : pathname.startsWith('/dashboard/petugas')
+      ? 'petugas'
+      : pathname.startsWith('/dashboard/pasien')
+      ? 'pasien'
+      : ['admin', 'petugas', 'dokter', 'pasien']
+  );
 
-  const hasAccess = role && allowedRoles.includes(role);
+  const allowedRoles = Array.isArray(expectedRole)
+    ? expectedRole
+    : [expectedRole];
+
+  const hasAccess = Boolean(role && allowedRoles.includes(role));
+
+  // Security Redirect: Tendang pengguna tidak sah kembali ke login
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user || !role) {
+        toast.error('Silakan masuk terlebih dahulu untuk mengakses dashboard.');
+        router.replace('/auth/login?auth_error=unauthenticated');
+      } else if (!hasAccess) {
+        toast.error(
+          `Akses ditolak! Anda masuk sebagai ${role.toUpperCase()} dan tidak memiliki izin mengakses halaman ${allowedRoles.join('/').toUpperCase()}.`
+        );
+        router.replace(`/auth/login?auth_error=forbidden_${allowedRoles[0]}`);
+      }
+    }
+  }, [user, role, isLoading, hasAccess, router, allowedRoles]);
+
+  if (isLoading || !user || !hasAccess) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/25 animate-pulse mb-4">
+          <Activity className="h-6 w-6 stroke-[2.5]" />
+        </div>
+        <p className="text-sm font-bold text-slate-800">Memverifikasi Otoritas Akses...</p>
+        <p className="text-xs text-slate-400 mt-1">Mengamankan sesi Anda di SIM-Klinik</p>
+      </div>
+    );
+  }
 
   // Navigation Links based on role
   const getNavItems = (): NavItem[] => {
@@ -159,7 +197,7 @@ export function DashboardLayout({
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-bold text-slate-900 truncate">{user?.full_name || 'Pengguna Demo'}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                   <span
                     className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getRoleBadgeStyle(
                       role
@@ -167,6 +205,11 @@ export function DashboardLayout({
                   >
                     {role || 'Tamu'}
                   </span>
+                  {user?.employee_code && (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-slate-200/80 text-slate-700">
+                      ID: {user.employee_code}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -263,37 +306,7 @@ export function DashboardLayout({
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
-        {!hasAccess ? (
-          <div className="p-8 max-w-2xl mx-auto my-12 bg-white rounded-3xl border border-rose-200 shadow-sm text-center">
-            <div className="h-16 w-16 mx-auto rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
-              <Shield className="h-8 w-8" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Akses Terbatas</h2>
-            <p className="text-slate-600 text-sm mb-6">
-              Halaman ini memerlukan hak akses peran{' '}
-              <strong className="text-slate-900 uppercase">
-                {Array.isArray(requiredRole) ? requiredRole.join(' atau ') : requiredRole}
-              </strong>
-              . Saat ini Anda masuk sebagai <strong className="text-blue-700 uppercase">{role || 'Tamu'}</strong>.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <button
-                onClick={() => loginAs(Array.isArray(requiredRole) ? requiredRole[0] : requiredRole || 'admin')}
-                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
-              >
-                Beralih ke Peran {Array.isArray(requiredRole) ? requiredRole[0].toUpperCase() : requiredRole?.toUpperCase()}
-              </button>
-              <Link
-                href="/"
-                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Kembali ke Beranda
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
-        )}
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );
