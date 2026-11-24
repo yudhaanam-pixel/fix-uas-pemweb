@@ -1,0 +1,27 @@
+[33mcommit 4fb77919914ca6f11706fc33304b128d1b2aaaeb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Sabilla Wahyu Widyastuti <sabillawhy@gmail.com>
+Date:   Wed Nov 18 17:28:15 2026 +0700
+
+    Update codingan 2
+
+ src/app/dashboard/dokter/page.tsx | 21 [32m+++++++++++++[m[31m--------[m
+ 1 file changed, 13 insertions(+), 8 deletions(-)
+
+[33mcommit 1fe748d8e3f8ad96338bf1ff51f6f60fa151c0fc[m
+Author: Sabilla Wahyu Widyastuti <sabillawhy@gmail.com>
+Date:   Wed Nov 18 17:14:00 2026 +0700
+
+    Update codingan
+
+ src/app/auth/login/page.tsx                   |  97 [32m+++++++[m[31m-[m
+ src/app/dashboard/admin/users/page.tsx        |   5 [32m+[m
+ src/app/page.tsx                              |  35 [32m++[m[31m-[m
+ src/components/dashboard/dashboard-layout.tsx |  95 [32m++++[m[31m----[m
+ src/components/ui/navbar.tsx                  | 117 [32m++[m[31m--------[m
+ src/lib/auth-context.tsx                      | 308 [32m+++++++++++++++++++++++[m[31m---[m
+ src/lib/clinic-service.ts                     |  23 [32m+[m[31m-[m
+ src/lib/mock-data.ts                          |  14 [32m++[m
+ src/middleware.ts                             |  44 [32m+++[m[31m-[m
+ src/types/database.ts                         |   3 [32m+[m
+ supabase/migrations/001_initial_schema.sql    |   6 [32m+[m[31m-[m
+ 11 files changed, 539 insertions(+), 208 deletions(-)
