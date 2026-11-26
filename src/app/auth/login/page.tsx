@@ -4,26 +4,23 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, getRoleDashboardUrl, detectRoleFromEmployeeCode } from '@/lib/auth-context';
-import { UserRole } from '@/types/database';
 import {
   Activity,
   AlertCircle,
   ArrowRight,
-  CheckCircle2,
   Lock,
   Mail,
   Shield,
   Stethoscope,
   User,
   UserCheck,
-  Building2,
   KeyRound,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginAs, loginWithEmail } = useAuth();
+  const { loginWithEmail } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [employeeCode, setEmployeeCode] = useState('');
@@ -69,11 +66,6 @@ export default function LoginPage() {
           'Gagal memproses login. Silakan periksa kembali data yang dimasukkan.'
       );
     }
-  };
-
-  const handleFastLogin = (role: UserRole) => {
-    loginAs(role);
-    toast.success(`Berhasil masuk sebagai ${role.toUpperCase()} (Mode Demo)`);
   };
 
   return (
@@ -192,81 +184,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Role Switcher */}
-          <div className="pt-4 border-t border-slate-100">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
-                Akses Cepat Pengujian (1-Click Demo)
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 mb-3">
-              Pilih peran di bawah ini untuk langsung masuk ke dashboard masing-masing role:
-            </p>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleFastLogin('admin')}
-                className="p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-purple-600" />
-                  <p className="text-xs font-bold text-purple-900">1. Admin</p>
-                </div>
-                <p className="text-[10px] text-purple-700 mt-0.5">Master data & kuota</p>
-                <span className="inline-block mt-1 text-[9px] font-mono font-semibold bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded border border-purple-300/60">
-                  Kode: 10001
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFastLogin('petugas')}
-                className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5">
-                  <UserCheck className="h-3.5 w-3.5 text-amber-600" />
-                  <p className="text-xs font-bold text-amber-900">2. Petugas FO</p>
-                </div>
-                <p className="text-[10px] text-amber-700 mt-0.5">Check-in & antrean</p>
-                <span className="inline-block mt-1 text-[9px] font-mono font-semibold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300/60">
-                  Kode: 30001
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFastLogin('dokter')}
-                className="p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5">
-                  <Stethoscope className="h-3.5 w-3.5 text-blue-600" />
-                  <p className="text-xs font-bold text-blue-900">3. Dokter</p>
-                </div>
-                <p className="text-[10px] text-blue-700 mt-0.5">Rekam medis & SOAP</p>
-                <span className="inline-block mt-1 text-[9px] font-mono font-semibold bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded border border-blue-300/60">
-                  Kode: 25001
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFastLogin('pasien')}
-                className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5 text-emerald-600" />
-                  <p className="text-xs font-bold text-emerald-900">4. Pasien</p>
-                </div>
-                <p className="text-[10px] text-emerald-700 mt-0.5">Pendaftaran & tiket</p>
-                <span className="inline-block mt-1 text-[9px] font-mono font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-300/60">
-                  Kode: Bebas
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <div className="pt-2 text-center text-xs text-slate-500">
+          <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
             <span>Belum memiliki akun pasien? </span>
             <Link href="/auth/register" className="font-bold text-blue-600 hover:text-blue-700 hover:underline">
               Daftar Pasien Baru

@@ -195,7 +195,7 @@ export default function HomePage() {
       {/* ==================================================================== */}
       <section
         id="beranda"
-        className="relative overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-blue-50/30 pt-10 pb-16 lg:pt-16 lg:pb-24 border-b border-blue-50"
+        className="relative overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-blue-50/30 pt-8 pb-14 lg:pt-12 lg:pb-16 border-b border-blue-50"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -301,7 +301,7 @@ export default function HomePage() {
       {/* ==================================================================== */}
       {/* 2. STATS BAR (4 White Rounded Cards) */}
       {/* ==================================================================== */}
-      <section className="relative -mt-8 z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="relative -mt-7 z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1 */}
           <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-lg shadow-blue-900/5 border border-blue-100/80 flex items-center gap-4 hover:border-blue-300 transition-all">
@@ -352,7 +352,7 @@ export default function HomePage() {
       {/* ==================================================================== */}
       {/* 3. SECTION TENTANG KAMI & INFO OPERASIONAL */}
       {/* ==================================================================== */}
-      <section id="tentang" className="py-20 lg:py-28 bg-white">
+      <section id="tentang" className="py-12 lg:py-14 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left: Clinic / Hospital Building Photo */}
@@ -467,9 +467,9 @@ export default function HomePage() {
       {/* ==================================================================== */}
       {/* 4. SECTION LAYANAN KAMI (Grid of Cards with realistic photos & icons) */}
       {/* ==================================================================== */}
-      <section id="layanan" className="py-20 bg-slate-50/70 border-y border-slate-200/60">
+      <section id="layanan" className="py-12 lg:py-14 bg-slate-50/70 border-y border-slate-200/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600 block mb-1">
                 Layanan Unggulan
@@ -628,7 +628,7 @@ export default function HomePage() {
       {/* ==================================================================== */}
       {/* 5. SECTION DOKTER & JADWAL PRAKTIK (Carousel/Grid, Kuota, & Direct CTA) */}
       {/* ==================================================================== */}
-      <section id="dokter" className="py-20 lg:py-28 bg-white">
+      <section id="dokter" className="py-12 lg:py-14 bg-white">
         <div id="jadwal" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
@@ -806,9 +806,9 @@ export default function HomePage() {
       {/* ==================================================================== */}
       {/* 6. SECTION FASILITAS MODERN (High-contrast medical facility showcase) */}
       {/* ==================================================================== */}
-      <section className="py-16 bg-slate-900 text-white">
+      <section className="py-12 lg:py-14 bg-slate-900 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="text-center max-w-3xl mx-auto mb-8">
             <span className="text-xs font-bold uppercase tracking-widest text-blue-400 block mb-2">
               Fasilitas Terkini
             </span>
@@ -902,9 +902,9 @@ export default function HomePage() {
       {/* ==================================================================== */}
       {/* 7. SECTION BERITA & TIPS KESEHATAN (4 Cards matching mockup) */}
       {/* ==================================================================== */}
-      <section className="py-20 bg-slate-50 border-b border-slate-200">
+      <section className="py-12 lg:py-14 bg-slate-50 border-b border-slate-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600 block mb-1">
                 Edukasi & Informasi

@@ -104,7 +104,7 @@ export default function FrontOfficeDashboard() {
 
           <Link
             href="/dashboard/petugas/walk-in"
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 text-xs shadow-sm shadow-blue-600/20 transition-all shrink-0 cursor-pointer whitespace-nowrap"
           >
             <UserPlus className="h-4 w-4" />
             <span>Pendaftaran Pasien Walk-in Baru</span>
@@ -112,35 +112,45 @@ export default function FrontOfficeDashboard() {
         </div>
 
         {/* Counter Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="p-4 rounded-2xl bg-white border border-slate-200">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Total Pasien Hari Ini</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{totalToday}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-slate-500">
+              Total Pasien Hari Ini
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{totalToday}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200">
-            <p className="text-[10px] uppercase font-bold text-amber-700">Belum Datang (Menunggu)</p>
-            <p className="text-2xl font-black text-amber-900 mt-1">{waitingArrival}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-amber-700">
+              Belum Datang (Menunggu)
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{waitingArrival}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-cyan-50 border border-cyan-200">
-            <p className="text-[10px] uppercase font-bold text-cyan-700">Tiba (Check-in)</p>
-            <p className="text-2xl font-black text-cyan-900 mt-1">{checkedIn}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-sky-700">
+              Tiba (Check-in)
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{checkedIn}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200">
-            <p className="text-[10px] uppercase font-bold text-blue-700">Diperiksa Dokter</p>
-            <p className="text-2xl font-black text-blue-900 mt-1">{inExamination}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-blue-700">
+              Diperiksa Dokter
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{inExamination}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
-            <p className="text-[10px] uppercase font-bold text-emerald-700">Selesai Kunjungan</p>
-            <p className="text-2xl font-black text-emerald-900 mt-1">{completed}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs col-span-2 sm:col-span-1">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-emerald-700">
+              Selesai Kunjungan
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{completed}</p>
           </div>
         </div>
 
         {/* Filters & Search */}
-        <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3">
+        <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-xs space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="relative">
               <input
@@ -148,7 +158,7 @@ export default function FrontOfficeDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari kode antrean, nama, atau NIK..."
-                className="w-full rounded-xl border border-slate-300 pl-9 pr-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
             </div>
@@ -157,7 +167,7 @@ export default function FrontOfficeDashboard() {
               <select
                 value={selectedDept}
                 onChange={(e) => setSelectedDept(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="all">Semua Poliklinik</option>
                 {departments.map((d) => (
@@ -172,7 +182,7 @@ export default function FrontOfficeDashboard() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="all">Semua Status Kunjungan</option>
                 <option value="menunggu">Menunggu Kedatangan</option>
@@ -186,17 +196,17 @@ export default function FrontOfficeDashboard() {
         </div>
 
         {/* Appointments Table */}
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
                 <tr>
-                  <th className="px-5 py-3.5">Antrean</th>
-                  <th className="px-5 py-3.5">Nama Pasien & NIK</th>
-                  <th className="px-5 py-3.5">Poli / Dokter</th>
-                  <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5">Waktu Check-in</th>
-                  <th className="px-5 py-3.5 text-right">Aksi Meja FO</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Antrean</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Nama Pasien &amp; NIK</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Poli / Dokter</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Waktu Check-in</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">Aksi Meja FO</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -211,8 +221,8 @@ export default function FrontOfficeDashboard() {
                     const badge = getStatusBadge(apt.status);
                     return (
                       <tr key={apt.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="font-mono text-sm font-black text-slate-900 bg-slate-100 inline-block px-2.5 py-1 rounded-lg">
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="font-mono text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 inline-block px-2.5 py-1 rounded-lg">
                             {apt.queue_code}
                           </div>
                           {apt.is_walk_in && (
@@ -223,8 +233,8 @@ export default function FrontOfficeDashboard() {
                         </td>
 
                         <td className="px-5 py-4">
-                          <p className="font-bold text-slate-900">{apt.patient_name}</p>
-                          <p className="text-[11px] text-slate-400 font-mono">
+                          <p className="font-bold text-slate-900 whitespace-nowrap">{apt.patient_name}</p>
+                          <p className="text-[11px] text-slate-400 font-mono whitespace-nowrap">
                             NIK: {apt.patient_nik || '-'} • HP: {apt.patient_phone || '-'}
                           </p>
                           {apt.complaint && (
@@ -234,32 +244,32 @@ export default function FrontOfficeDashboard() {
                           )}
                         </td>
 
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <p className="font-semibold text-slate-900">{apt.doctor?.title}</p>
-                          <p className="text-[11px] text-teal-700">
+                          <p className="text-[11px] text-blue-600 font-medium">
                             {apt.doctor?.specialization} ({apt.doctor?.room_number})
                           </p>
                         </td>
 
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${badge.badgeClass}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${badge.badgeClass}`}
                           >
                             <span className={`h-1.5 w-1.5 rounded-full ${badge.dotClass}`} />
                             <span>{badge.label}</span>
                           </span>
                         </td>
 
-                        <td className="px-5 py-4 font-mono text-slate-600 text-[11px]">
+                        <td className="px-5 py-4 font-mono text-slate-600 text-[11px] whitespace-nowrap">
                           {apt.check_in_time ? formatTimeIndo(apt.check_in_time) : '-'}
                         </td>
 
-                        <td className="px-5 py-4 text-right">
+                        <td className="px-5 py-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             {apt.status === 'menunggu' && (
                               <button
                                 onClick={() => handleCheckIn(apt.id, apt.patient_name)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs cursor-pointer whitespace-nowrap"
                                 title="Konfirmasi Kedatangan Pasien"
                               >
                                 <UserCheck className="h-3.5 w-3.5" />
@@ -270,7 +280,7 @@ export default function FrontOfficeDashboard() {
                             {apt.status !== 'batal' && apt.status !== 'selesai' && (
                               <button
                                 onClick={() => handleStatusChange(apt.id, 'batal')}
-                                className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50"
+                                className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                 title="Batalkan Antrean"
                               >
                                 <XCircle className="h-4 w-4" />

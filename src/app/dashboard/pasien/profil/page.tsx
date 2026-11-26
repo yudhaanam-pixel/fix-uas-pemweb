@@ -54,10 +54,10 @@ export default function PatientProfilePage() {
           </p>
         </div>
 
-        <form onSubmit={handleSave} className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
           {/* Avatar & Header Info */}
           <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-100">
-            <div className="h-20 w-20 rounded-full overflow-hidden bg-teal-100 border-4 border-white shadow-md shrink-0 flex items-center justify-center font-bold text-teal-800 text-2xl">
+            <div className="h-20 w-20 rounded-full overflow-hidden bg-blue-100 border-4 border-white shadow-md shrink-0 flex items-center justify-center font-bold text-blue-700 text-2xl">
               {avatarUrl ? (
                 <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover" />
               ) : (
@@ -68,7 +68,7 @@ export default function PatientProfilePage() {
             <div className="text-center sm:text-left flex-1 space-y-1">
               <h2 className="text-lg font-bold text-slate-900">{fullName || 'Pasien Klinik'}</h2>
               <p className="text-xs text-slate-500 font-mono">Email: {user?.email || '-'}</p>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-0.5 text-[11px] font-semibold text-teal-700 border border-teal-200">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 border border-blue-200">
                 <ShieldCheck className="h-3.5 w-3.5" /> Pasien Terverifikasi
               </div>
             </div>
@@ -85,7 +85,7 @@ export default function PatientProfilePage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -98,7 +98,7 @@ export default function PatientProfilePage() {
                 maxLength={16}
                 value={nik}
                 onChange={(e) => setNik(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -111,7 +111,7 @@ export default function PatientProfilePage() {
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -122,7 +122,7 @@ export default function PatientProfilePage() {
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value as 'L' | 'P')}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="L">Laki-laki</option>
                 <option value="P">Perempuan</option>
@@ -137,7 +137,7 @@ export default function PatientProfilePage() {
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -148,7 +148,7 @@ export default function PatientProfilePage() {
               <select
                 value={bloodType}
                 onChange={(e) => setBloodType(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="A+">A+</option>
                 <option value="B+">B+</option>
@@ -171,9 +171,9 @@ export default function PatientProfilePage() {
               value={allergies}
               onChange={(e) => setAllergies(e.target.value)}
               placeholder="Contoh: Amoksisilin, Seafood, Kacang..."
-              className="w-full rounded-xl border border-rose-200 bg-rose-50/30 px-3 py-2 text-xs text-rose-900 focus:outline-rose-600"
+              className="w-full rounded-xl border border-rose-200 bg-rose-50/30 px-3 py-2 text-xs text-rose-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
             />
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-500 mt-1">
               *Informasi ini sangat penting agar dokter tidak memberikan obat yang berbahaya bagi Anda.
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function PatientProfilePage() {
               rows={2}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
             />
           </div>
 
@@ -205,7 +205,7 @@ export default function PatientProfilePage() {
           <div className="pt-4 flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 text-xs shadow-sm shadow-blue-600/20 transition-all cursor-pointer whitespace-nowrap"
             >
               <Save className="h-4 w-4" />
               <span>Simpan Perubahan Data</span>

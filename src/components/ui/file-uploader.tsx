@@ -118,7 +118,7 @@ export function FileUploader({
             href={successInfo.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-teal-700 underline font-bold hover:text-teal-900 shrink-0 ml-2"
+            className="text-blue-700 underline font-semibold hover:text-blue-900 shrink-0 ml-2 whitespace-nowrap"
           >
             Lihat Berkas
           </a>

@@ -96,7 +96,7 @@ export default function AdminDepartmentsPage() {
 
           <button
             onClick={openAddModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 text-xs shadow-sm shadow-blue-600/20 transition-all shrink-0 cursor-pointer whitespace-nowrap"
           >
             <Plus className="h-4 w-4" />
             <span>Tambah Poliklinik Baru</span>
@@ -104,73 +104,75 @@ export default function AdminDepartmentsPage() {
         </div>
 
         {/* Poliklinik Table */}
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
-              <tr>
-                <th className="px-5 py-3.5">Kode</th>
-                <th className="px-5 py-3.5">Nama Poliklinik</th>
-                <th className="px-5 py-3.5">Deskripsi Layanan</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {departments.map((dept) => (
-                <tr key={dept.id} className="hover:bg-slate-50/70">
-                  <td className="px-5 py-4">
-                    <span className="font-mono text-xs font-black text-teal-800 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
-                      {dept.code}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 font-bold text-slate-900 text-sm">
-                    {dept.name}
-                  </td>
-                  <td className="px-5 py-4 text-slate-600 max-w-md">
-                    {dept.description || '-'}
-                  </td>
-                  <td className="px-5 py-4">
-                    {dept.is_active ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        <CheckCircle2 className="h-3 w-3" /> Aktif
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
-                        <XCircle className="h-3 w-3" /> Nonaktif
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => openEditModal(dept)}
-                        className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-teal-700 hover:bg-teal-50"
-                        title="Edit Poliklinik"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(dept.id, dept.name)}
-                        className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50"
-                        title="Hapus Poliklinik"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
+                <tr>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Kode</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Nama Poliklinik</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Deskripsi Layanan</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {departments.map((dept) => (
+                  <tr key={dept.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+                        {dept.code}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+                      {dept.name}
+                    </td>
+                    <td className="px-5 py-4 text-slate-600 max-w-md">
+                      {dept.description || '-'}
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {dept.is_active ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          <CheckCircle2 className="h-3 w-3" /> Aktif
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                          <XCircle className="h-3 w-3" /> Nonaktif
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openEditModal(dept)}
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-colors cursor-pointer"
+                          title="Edit Poliklinik"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(dept.id, dept.name)}
+                          className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Hapus Poliklinik"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Modal Add / Edit */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-            <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 relative">
               <button
                 onClick={() => setModalOpen(false)}
-                className="absolute right-4 top-4 rounded-full p-1.5 text-slate-400 hover:bg-slate-100"
+                className="absolute right-4 top-4 rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -190,7 +192,7 @@ export default function AdminDepartmentsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Contoh: Poli Umum, Poli Mata..."
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-teal-600"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
                 </div>
 
@@ -205,7 +207,7 @@ export default function AdminDepartmentsPage() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
                     placeholder="Contoh: UMU, GIG, ANK"
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-mono uppercase focus:outline-teal-600"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-mono uppercase text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
                 </div>
 
@@ -218,7 +220,7 @@ export default function AdminDepartmentsPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Jelaskan cakupan tindakan / diagnosis poli ini..."
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-teal-600"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
                 </div>
 
@@ -228,7 +230,7 @@ export default function AdminDepartmentsPage() {
                     id="isActive"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                   <label htmlFor="isActive" className="text-xs font-semibold text-slate-700">
                     Status Layanan Aktif (Buka Pendaftaran)
@@ -239,13 +241,13 @@ export default function AdminDepartmentsPage() {
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 text-xs shadow-md shadow-blue-500/20 cursor-pointer"
+                    className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 text-xs shadow-sm shadow-blue-600/20 cursor-pointer"
                   >
                     {editingDept ? 'Simpan Perubahan' : 'Tambah Poliklinik'}
                   </button>
