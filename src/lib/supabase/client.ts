@@ -7,8 +7,12 @@ export const isSupabaseConfigured = Boolean(
 );
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey || !isSupabaseConfigured) {
+    throw new Error('Supabase belum dikonfigurasi. Periksa URL dan anon key Supabase.');
+  }
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey);
 }
