@@ -18,6 +18,7 @@ import {
   INITIAL_MEDICAL_RECORDS,
   DEMO_PROFILES,
 } from '@/lib/mock-data';
+import { createClient } from '@/lib/supabase/client';
 
 const STORAGE_KEYS = {
   DEPARTMENTS: 'sim_klinik_departments',
@@ -277,6 +278,69 @@ export const ClinicService = {
   // --- REKAM MEDIS (MEDICAL RECORDS) ---
   getMedicalRecords(): MedicalRecord[] {
     return getStorage<MedicalRecord[]>(STORAGE_KEYS.MEDICAL_RECORDS, INITIAL_MEDICAL_RECORDS);
+  },
+
+  async getMedicalRecordsWithRelations(useSupabase = false): Promise<MedicalRecord[]> {
+    if (!useSupabase) {
+      const profiles = this.getProfiles();
+      const doctors = this.getDoctors();
+      const appointments = getStorage<Appointment[]>(STORAGE_KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
+
+      return this.getMedicalRecords()
+        .map((record) => {
+          const appointment = appointments.find((item) => item.id === record.appointment_id);
+          return {
+            ...record,
+            patient: profiles.find((profile) => profile.id === record.patient_id),
+            doctor: doctors.find((doctor) => doctor.id === record.doctor_id),
+            appointment,
+          };
+        })
+        .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    }
+
+    const supabase = createClient();
+    const [recordsResult, doctorsResult] = await Promise.all([
+      supabase.from('medical_records').select('*').order('created_at', { ascending: false }),
+      supabase.from('doctors').select('*'),
+    ]);
+
+    if (recordsResult.error) {
+      throw new Error(`Gagal memuat riwayat rekam medis: ${recordsResult.error.message}`);
+    }
+    if (doctorsResult.error) {
+      throw new Error(`Gagal memuat data dokter: ${doctorsResult.error.message}`);
+    }
+
+    const records = (recordsResult.data || []) as MedicalRecord[];
+    const patientIds = [...new Set(records.map((record) => record.patient_id))];
+    const appointmentIds = [...new Set(records.map((record) => record.appointment_id))];
+    const [profilesResult, appointmentsResult] = await Promise.all([
+      patientIds.length
+        ? supabase.from('profiles').select('*').in('id', patientIds)
+        : Promise.resolve({ data: [], error: null }),
+      appointmentIds.length
+        ? supabase.from('appointments').select('*').in('id', appointmentIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (profilesResult.error) {
+      throw new Error(`Gagal memuat data pasien: ${profilesResult.error.message}`);
+    }
+    if (appointmentsResult.error) {
+      throw new Error(`Gagal memuat data kunjungan: ${appointmentsResult.error.message}`);
+    }
+
+    const profiles = (profilesResult.data || []) as Profile[];
+    const doctors = (doctorsResult.data || []) as Doctor[];
+    const appointments = (appointmentsResult.data || []) as Appointment[];
+
+    return records.map((record) => ({
+      ...record,
+      patient: profiles.find((profile) => profile.id === record.patient_id),
+      doctor: doctors.find((doctor) => doctor.id === record.doctor_id),
+      appointment: appointments.find((appointment) => appointment.id === record.appointment_id),
+    }));
   },
 
   getMedicalRecordsByPatient(patientId: string): MedicalRecord[] {

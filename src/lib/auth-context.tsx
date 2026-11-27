@@ -109,7 +109,7 @@ function isUserRole(role: unknown): role is UserRole {
   return role === 'admin' || role === 'petugas' || role === 'dokter' || role === 'pasien';
 }
 
-function hasDemoSession() {
+export function isDemoSession() {
   return typeof document !== 'undefined' &&
     document.cookie.split('; ').includes(`${DEMO_SESSION_COOKIE}=true`);
 }
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const restoreSession = async () => {
       try {
-        if (hasDemoSession()) {
+        if (isDemoSession()) {
           const demoRole = document.cookie
             .split('; ')
             .find((cookie) => cookie.startsWith('sim_klinik_role='))

@@ -101,6 +101,7 @@ export function DashboardLayout({
           { label: 'Master Dokter', href: '/dashboard/admin/doctors', icon: Stethoscope },
           { label: 'Jadwal & Kuota', href: '/dashboard/admin/schedules', icon: Calendar },
           { label: 'Pengguna & Hak Akses', href: '/dashboard/admin/users', icon: Users },
+          { label: 'Riwayat Pemeriksaan', href: '/dashboard/admin/history', icon: FileText },
           { label: 'Laporan & Rekapitulasi', href: '/dashboard/admin/reports', icon: FileText },
         ];
       case 'petugas':
