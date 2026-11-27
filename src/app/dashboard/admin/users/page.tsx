@@ -40,14 +40,14 @@ export default function AdminUsersPage() {
   const getRoleBadge = (r: UserRole) => {
     switch (r) {
       case 'admin':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'petugas':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'dokter':
         return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'petugas':
+        return 'bg-sky-50 text-sky-700 border-sky-200';
+      case 'dokter':
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'pasien':
       default:
-        return 'bg-teal-50 text-teal-700 border-teal-200';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     }
   };
 
@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Manajemen Pengguna & Hak Akses (RBAC)
+            Manajemen Pengguna &amp; Hak Akses (RBAC)
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Kelola otoritas dan peran pengguna: Administrator, Petugas Front Office, Dokter Spesialis, dan Pasien.
@@ -70,13 +70,13 @@ export default function AdminUsersPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari nama pengguna, email, atau NIK..."
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs focus:outline-teal-600 max-w-sm"
+            className="w-full sm:max-w-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
           />
 
           <select
             value={selectedRoleFilter}
             onChange={(e) => setSelectedRoleFilter(e.target.value)}
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs focus:outline-teal-600"
+            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
           >
             <option value="all">Semua Peran</option>
             <option value="admin">Administrator</option>
@@ -87,71 +87,73 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
-              <tr>
-                <th className="px-5 py-3.5">Nama & Profil</th>
-                <th className="px-5 py-3.5">Kontak & NIK</th>
-                <th className="px-5 py-3.5">Peran Saat Ini</th>
-                <th className="px-5 py-3.5 text-right">Ubah Hak Akses (RBAC)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/70">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-teal-100 text-teal-800 font-bold flex items-center justify-center shrink-0">
-                        {u.avatar_url ? (
-                          <img src={u.avatar_url} alt={u.full_name} className="h-full w-full rounded-full object-cover" />
-                        ) : (
-                          u.full_name.charAt(0)
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900 text-sm">{u.full_name}</p>
-                        <p className="text-slate-400 text-[11px] font-mono">{u.email || '-'}</p>
-                        {u.employee_code && (
-                          <span className="inline-block mt-1 text-[10px] font-mono font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                            Kode: {u.employee_code}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <p className="text-slate-700 font-mono">{u.phone || '-'}</p>
-                    <p className="text-slate-400 text-[11px] font-mono">NIK: {u.nik || '-'}</p>
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${getRoleBadge(
-                        u.role
-                      )}`}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-
-                  <td className="px-5 py-4 text-right">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole, u.full_name)}
-                      className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-teal-600"
-                    >
-                      <option value="admin">Jadikan Admin</option>
-                      <option value="petugas">Jadikan Petugas FO</option>
-                      <option value="dokter">Jadikan Dokter</option>
-                      <option value="pasien">Jadikan Pasien</option>
-                    </select>
-                  </td>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
+                <tr>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Nama &amp; Profil</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Kontak &amp; NIK</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Peran Saat Ini</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">Ubah Hak Akses (RBAC)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">
+                          {u.avatar_url ? (
+                            <img src={u.avatar_url} alt={u.full_name} className="h-full w-full rounded-full object-cover" />
+                          ) : (
+                            u.full_name.charAt(0)
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm">{u.full_name}</p>
+                          <p className="text-slate-400 text-[11px] font-mono">{u.email || '-'}</p>
+                          {u.employee_code && (
+                            <span className="inline-block mt-1 text-[10px] font-mono font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                              Kode: {u.employee_code}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <p className="text-slate-700 font-mono">{u.phone || '-'}</p>
+                      <p className="text-slate-400 text-[11px] font-mono">NIK: {u.nik || '-'}</p>
+                    </td>
+
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${getRoleBadge(
+                          u.role
+                        )}`}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-4 text-right whitespace-nowrap">
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole, u.full_name)}
+                        className="rounded-xl border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                      >
+                        <option value="admin">Jadikan Admin</option>
+                        <option value="petugas">Jadikan Petugas FO</option>
+                        <option value="dokter">Jadikan Dokter</option>
+                        <option value="pasien">Jadikan Pasien</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </DashboardLayout>

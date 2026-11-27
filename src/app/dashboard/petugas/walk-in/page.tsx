@@ -97,27 +97,27 @@ export default function FrontOfficeWalkInPage() {
 
         {generatedTicket ? (
           /* Printed Ticket Screen */
-          <div className="bg-white rounded-3xl border-2 border-teal-400 p-8 shadow-xl text-center space-y-6">
-            <div className="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+          <div className="bg-white rounded-2xl border border-blue-300 border-t-4 border-t-blue-600 p-8 shadow-sm text-center space-y-6">
+            <div className="h-16 w-16 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
               <CheckCircle2 className="h-8 w-8" />
             </div>
 
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+              <span className="inline-block text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                 Pendaftaran Berhasil (Langsung Check-In)
               </span>
-              <h2 className="text-2xl font-black text-slate-900 mt-2">
+              <h2 className="text-2xl font-extrabold text-slate-900 mt-2">
                 Struk Nomor Antrean Pasien
               </h2>
             </div>
 
             {/* Ticket Box */}
             <div className="max-w-sm mx-auto p-6 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300 text-center space-y-3">
-              <p className="text-xs uppercase font-extrabold text-slate-400">
-                Klinik Sehat Utama
+              <p className="text-[11px] uppercase font-bold tracking-wider text-blue-600">
+                Rumah Sakit &amp; Klinik Anaverse
               </p>
               <div className="py-2 border-y border-slate-200">
-                <p className="text-5xl font-black font-mono text-teal-800">
+                <p className="text-5xl font-extrabold font-mono text-blue-600">
                   {generatedTicket.queue_code}
                 </p>
                 <p className="text-xs font-bold text-slate-700 mt-1">
@@ -141,10 +141,10 @@ export default function FrontOfficeWalkInPage() {
               </div>
             </div>
 
-            <div className="flex gap-3 justify-center pt-2">
+            <div className="flex flex-wrap gap-3 justify-center pt-2">
               <button
                 onClick={handlePrint}
-                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold px-5 py-2.5 text-xs shadow-md"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 text-xs shadow-sm shadow-blue-600/20 cursor-pointer whitespace-nowrap"
               >
                 <Printer className="h-4 w-4" />
                 <span>Cetak Struk Antrean</span>
@@ -158,7 +158,7 @@ export default function FrontOfficeWalkInPage() {
                   setPatientPhone('');
                   setComplaint('');
                 }}
-                className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer whitespace-nowrap"
               >
                 Daftar Pasien Berikutnya
               </button>
@@ -168,7 +168,7 @@ export default function FrontOfficeWalkInPage() {
           /* Walk-in Input Form */
           <form
             onSubmit={handleRegisterWalkIn}
-            className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5"
+            className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5"
           >
             {/* Poli Selection */}
             <div>
@@ -183,7 +183,7 @@ export default function FrontOfficeWalkInPage() {
                   setSelectedDoctorId(docs[0]?.id || '');
                 }}
                 required
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="">-- Pilih Poliklinik --</option>
                 {departments.map((d) => (
@@ -204,7 +204,7 @@ export default function FrontOfficeWalkInPage() {
                 onChange={(e) => setSelectedDoctorId(e.target.value)}
                 required
                 disabled={!selectedDeptId}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-teal-600 disabled:bg-slate-100"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-100"
               >
                 <option value="">-- Pilih Dokter --</option>
                 {availableDoctors.map((doc) => (
@@ -218,10 +218,10 @@ export default function FrontOfficeWalkInPage() {
             {/* Quota Alert */}
             {quotaCheck && (
               <div
-                className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between font-medium ${
+                className={`p-3.5 rounded-xl border text-xs flex items-center justify-between font-medium ${
                   quotaCheck.isFull
                     ? 'bg-rose-50 border-rose-200 text-rose-800'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-blue-50 border-blue-200 text-blue-800'
                 }`}
               >
                 <span>Kuota Hari Ini ({formatDateIndo(todayStr)}):</span>
@@ -249,11 +249,11 @@ export default function FrontOfficeWalkInPage() {
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
                   placeholder="Nama lengkap pasien..."
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-teal-600"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
                     NIK Pasien
@@ -264,7 +264,7 @@ export default function FrontOfficeWalkInPage() {
                     value={patientNik}
                     onChange={(e) => setPatientNik(e.target.value)}
                     placeholder="3201..."
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-teal-600"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
                 </div>
 
@@ -277,7 +277,7 @@ export default function FrontOfficeWalkInPage() {
                     value={patientPhone}
                     onChange={(e) => setPatientPhone(e.target.value)}
                     placeholder="0812..."
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-teal-600"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function FrontOfficeWalkInPage() {
                   value={complaint}
                   onChange={(e) => setComplaint(e.target.value)}
                   placeholder="Gejala yang dialami..."
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-teal-600"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function FrontOfficeWalkInPage() {
               <button
                 type="submit"
                 disabled={quotaCheck?.isFull || !selectedDoctorId}
-                className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold py-3 text-xs shadow-sm shadow-blue-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>

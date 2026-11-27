@@ -105,16 +105,15 @@ export default function PatientDashboard() {
     <DashboardLayout requiredRole="pasien">
       <div className="space-y-8">
         {/* Top Welcome Banner */}
-        <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-blue-800 to-slate-900 text-white p-6 sm:p-8 shadow-md relative overflow-hidden">
-          <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-blue-500/10 blur-2xl pointer-events-none" />
+        <div className="rounded-2xl bg-gradient-to-r from-white via-white to-blue-50/80 border border-blue-200/80 p-6 sm:p-8 shadow-xs relative overflow-hidden">
           <div className="relative z-10 max-w-2xl space-y-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/30 px-3 py-1 text-xs font-semibold text-blue-200 border border-blue-400/30">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200">
               <Sparkles className="h-3.5 w-3.5" /> Portal Pasien Terintegrasi
             </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Halo, {user?.full_name || 'Bapak/Ibu Pasien'}
             </h1>
-            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Pantau tiket antrean aktif Anda hari ini atau lakukan pendaftaran kunjungan dokter untuk jadwal mendatang dengan verifikasi kuota otomatis.
             </p>
           </div>
@@ -122,8 +121,8 @@ export default function PatientDashboard() {
 
         {/* ACTIVE E-TICKET CARD */}
         {activeAppointment ? (
-          <div className="rounded-3xl bg-white border-2 border-blue-300 shadow-xl p-6 sm:p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-blue-600 text-white text-[11px] font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider flex items-center gap-1.5">
+          <div className="rounded-2xl bg-white border border-blue-300 border-t-4 border-t-blue-600 shadow-sm p-6 sm:p-8 relative overflow-hidden">
+            <div className="inline-flex sm:absolute sm:top-0 sm:right-0 bg-blue-600 text-white text-[11px] font-bold px-4 py-1.5 rounded-full sm:rounded-none sm:rounded-bl-2xl uppercase tracking-wider items-center gap-1.5 mb-4 sm:mb-0">
               <Ticket className="h-3.5 w-3.5" />
               <span>E-Tiket Antrean Aktif</span>
             </div>
@@ -134,14 +133,16 @@ export default function PatientDashboard() {
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
                   Nomor Antrean Anda
                 </p>
-                <p className="text-6xl font-black font-mono text-blue-700 tracking-tight my-2">
+                <p className="text-5xl sm:text-6xl font-extrabold font-mono text-blue-600 tracking-tight my-2">
                   {activeAppointment.queue_code}
                 </p>
 
                 {(() => {
                   const badge = getStatusBadge(activeAppointment.status);
                   return (
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold mt-1">
+                    <div
+                      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold mt-1 ${badge.badgeClass}`}
+                    >
                       <span className={`h-2 w-2 rounded-full ${badge.dotClass}`} />
                       <span>{badge.label}</span>
                     </div>
@@ -157,18 +158,18 @@ export default function PatientDashboard() {
               {/* Doctor and Clinic details */}
               <div className="lg:col-span-7 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <p className="text-[10px] uppercase font-bold text-slate-400">Dokter Spesialis</p>
                     <p className="text-sm font-bold text-slate-900 mt-0.5">
                       {activeAppointment.doctor?.title || 'Dokter'}
                     </p>
-                    <p className="text-blue-700 font-medium">
+                    <p className="text-blue-600 font-medium">
                       {activeAppointment.doctor?.specialization}
                     </p>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Ruang & Meja</p>
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Ruang &amp; Meja</p>
                     <p className="text-sm font-bold text-slate-900 mt-0.5">
                       {activeAppointment.doctor?.room_number || 'Ruang 101'}
                     </p>
@@ -176,11 +177,11 @@ export default function PatientDashboard() {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-blue-900">
-                  <p className="font-bold flex items-center gap-1.5 text-blue-800">
+                <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-slate-700">
+                  <p className="font-bold flex items-center gap-1.5 text-blue-700">
                     <Clock className="h-4 w-4" /> Petunjuk Kedatangan:
                   </p>
-                  <p className="mt-1 text-slate-700">
+                  <p className="mt-1 text-slate-600">
                     Setibanya di klinik, harap menuju <strong>Meja Resepsionis / Front Office</strong> untuk konfirmasi kedatangan (Check-in). Setelah itu, silakan menunggu di ruang tunggu sesuai nomor antrean.
                   </p>
                 </div>
@@ -188,7 +189,7 @@ export default function PatientDashboard() {
                 <div className="flex justify-end gap-2 pt-2">
                   <button
                     onClick={() => handleCancelAppointment(activeAppointment.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
                   >
                     <XCircle className="h-4 w-4" />
                     <span>Batalkan Antrean</span>
@@ -198,9 +199,9 @@ export default function PatientDashboard() {
             </div>
           </div>
         ) : (
-          <div className="p-6 rounded-3xl bg-slate-100 border border-slate-200 text-center space-y-2">
-            <Ticket className="h-10 w-10 text-slate-400 mx-auto" />
-            <h3 className="font-bold text-sm text-slate-700">Tidak Ada Antrean Aktif Hari Ini</h3>
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs text-center space-y-2">
+            <Ticket className="h-10 w-10 text-blue-400 mx-auto" />
+            <h3 className="font-bold text-sm text-slate-800">Tidak Ada Antrean Aktif Hari Ini</h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
               Anda belum memiliki janji temu yang aktif. Gunakan formulir di bawah ini untuk membuat janji temu baru.
             </p>
@@ -210,7 +211,7 @@ export default function PatientDashboard() {
         {/* BOOKING SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Booking Form Card */}
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
             <div>
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-600" />
@@ -235,7 +236,7 @@ export default function PatientDashboard() {
                     setSelectedDoctorId(docs[0]?.id || '');
                   }}
                   required
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-blue-600"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 >
                   <option value="">-- Pilih Poliklinik --</option>
                   {departments.map((dept) => (
@@ -256,7 +257,7 @@ export default function PatientDashboard() {
                   onChange={(e) => setSelectedDoctorId(e.target.value)}
                   required
                   disabled={!selectedDeptId}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-blue-600 disabled:bg-slate-100"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-100"
                 >
                   <option value="">-- Pilih Dokter --</option>
                   {availableDoctors.map((doc) => (
@@ -278,17 +279,17 @@ export default function PatientDashboard() {
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-blue-600"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               {/* Kuota Check Display */}
               {quotaInfo && (
                 <div
-                  className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between ${
+                  className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
                     quotaInfo.isFull
                       ? 'bg-rose-50 border-rose-200 text-rose-800'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-800 font-medium'
+                      : 'bg-blue-50 border-blue-200 text-blue-800 font-medium'
                   }`}
                 >
                   <span>Ketersediaan Kuota Dokter:</span>
@@ -310,14 +311,14 @@ export default function PatientDashboard() {
                   value={complaint}
                   onChange={(e) => setComplaint(e.target.value)}
                   placeholder="Ceritakan keluhan singkat yang dirasakan..."
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-blue-600"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={quotaInfo?.isFull || !selectedDoctorId}
-                className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+                className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold py-3 text-xs shadow-sm shadow-blue-600/20 transition-all cursor-pointer"
               >
                 {quotaInfo?.isFull ? 'Kuota Penuh - Pilih Jadwal Lain' : 'Daftar Kunjungan & Ambil Tiket'}
               </button>
@@ -326,7 +327,7 @@ export default function PatientDashboard() {
 
           {/* Quick Doctor Details Preview */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
               <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider">
                 Informasi Pasien Terdaftar
               </h3>
@@ -345,7 +346,7 @@ export default function PatientDashboard() {
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-100">
                   <span className="text-slate-500">Golongan Darah:</span>
-                  <span className="font-bold text-teal-700">{user?.blood_type || 'O+'}</span>
+                  <span className="font-bold text-blue-700">{user?.blood_type || 'O+'}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-100">
                   <span className="text-slate-500">Riwayat Alergi:</span>
@@ -354,16 +355,16 @@ export default function PatientDashboard() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-teal-50 border border-teal-200 p-6 text-xs text-teal-900 space-y-2">
-              <p className="font-bold flex items-center gap-2 text-teal-800">
+            <div className="rounded-2xl bg-blue-50/70 border border-blue-200 p-6 text-xs text-slate-700 space-y-2">
+              <p className="font-bold flex items-center gap-2 text-blue-700">
                 <Activity className="h-4 w-4" /> Alur Pelayanan Klinik:
               </p>
-              <ol className="list-decimal list-inside space-y-1 text-slate-700 text-xs">
+              <ol className="list-decimal list-inside space-y-1 text-slate-600 text-xs">
                 <li>Lakukan pendaftaran online melalui form ini.</li>
                 <li>Dapatkan nomor antrean unik poliklinik.</li>
                 <li>Lakukan Check-in di Front Office saat tiba.</li>
                 <li>Tunggu panggilan dokter di ruang tunggu.</li>
-                <li>Pemeriksaan & rekam medis digital selesai.</li>
+                <li>Pemeriksaan &amp; rekam medis digital selesai.</li>
               </ol>
             </div>
           </div>

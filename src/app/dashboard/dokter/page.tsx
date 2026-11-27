@@ -171,7 +171,7 @@ export default function DoctorDashboard() {
     <DashboardLayout requiredRole="dokter">
       <div className="space-y-6">
         {/* Doctor Banner */}
-        <div className="rounded-3xl bg-white border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {currentDoctor?.photo_url ? (
               <img
@@ -185,21 +185,21 @@ export default function DoctorDashboard() {
               </div>
             )}
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
+              <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                 Ruang Praktik Dokter
               </span>
-              <h1 className="text-xl font-black text-slate-900 mt-1">
+              <h1 className="text-xl font-extrabold text-slate-900 mt-1.5">
                 {currentDoctor?.title || 'dr. Budi Santoso'}
               </h1>
-              <p className="text-xs text-slate-500 font-mono">
+              <p className="text-xs text-slate-500 font-mono mt-0.5">
                 {currentDoctor?.specialization} • {currentDoctor?.room_number} {todayStr ? `• ${formatDateIndo(todayStr)}` : ''}
               </p>
             </div>
           </div>
 
-          <div className="text-right">
-            <p className="text-xs text-slate-400">Total Pasien Hari Ini</p>
-            <p className="text-2xl font-black text-blue-700">{appointments.length} Pasien</p>
+          <div className="sm:text-right shrink-0">
+            <p className="text-xs font-medium text-slate-500">Total Pasien Hari Ini</p>
+            <p className="text-2xl font-extrabold text-blue-600">{appointments.length} Pasien</p>
           </div>
         </div>
 
@@ -214,11 +214,11 @@ export default function DoctorDashboard() {
             </div>
 
             {appointments.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-white border border-slate-200 text-center text-slate-400 text-xs">
+              <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-xs text-center text-slate-400 text-xs">
                 Belum ada pasien yang mendaftar hari ini.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {appointments.map((apt) => {
                   const badge = getStatusBadge(apt.status);
                   const isSelected = selectedAppointment?.id === apt.id;
@@ -232,12 +232,12 @@ export default function DoctorDashboard() {
                         : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
+                      <div className="flex items-center justify-between mb-1.5 gap-2">
+                        <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md whitespace-nowrap">
                           {apt.queue_code}
                         </span>
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${badge.badgeClass}`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap ${badge.badgeClass}`}
                         >
                           <span className={`h-1.5 w-1.5 rounded-full ${badge.dotClass}`} />
                           <span>{badge.label}</span>
@@ -250,7 +250,7 @@ export default function DoctorDashboard() {
                       </p>
 
                       <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[11px] text-slate-400 font-medium">
                           {apt.is_walk_in ? 'Walk-in' : 'Online'}
                         </span>
 
@@ -261,7 +261,7 @@ export default function DoctorDashboard() {
                               e.stopPropagation();
                               handleCallPatient(apt);
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] shadow-xs"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] shadow-xs cursor-pointer whitespace-nowrap"
                           >
                             <Megaphone className="h-3 w-3" />
                             <span>Panggil</span>
@@ -280,15 +280,15 @@ export default function DoctorDashboard() {
             {selectedAppointment ? (
               <form
                 onSubmit={handleSaveMedicalRecord}
-                className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6"
+                className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6"
               >
                 {/* Patient Header Banner */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
                   <div>
-                    <span className="text-xs font-mono font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
+                    <span className="inline-block text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
                       ANTREAN: {selectedAppointment.queue_code}
                     </span>
-                    <h2 className="text-xl font-black text-slate-900 mt-1">
+                    <h2 className="text-xl font-extrabold text-slate-900 mt-1.5">
                       {selectedAppointment.patient_name}
                     </h2>
                     <p className="text-xs text-slate-500 font-mono">
@@ -296,12 +296,12 @@ export default function DoctorDashboard() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     {selectedAppointment.status !== 'diperiksa' && selectedAppointment.status !== 'selesai' && (
                       <button
                         type="button"
                         onClick={() => handleCallPatient(selectedAppointment)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm shadow-blue-600/20 cursor-pointer whitespace-nowrap"
                       >
                         <Megaphone className="h-3.5 w-3.5" />
                         <span>Panggil Pasien ke Ruangan</span>
@@ -313,7 +313,7 @@ export default function DoctorDashboard() {
                 {/* 1. Vital Signs Inputs */}
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 flex items-center gap-1.5">
-                    <Activity className="h-4 w-4 text-teal-600" /> Tanda-Tanda Vital (Pemeriksaan Awal)
+                    <Activity className="h-4 w-4 text-blue-600" /> Tanda-Tanda Vital (Pemeriksaan Awal)
                   </h3>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -325,7 +325,7 @@ export default function DoctorDashboard() {
                         type="number"
                         value={systolic}
                         onChange={(e) => setSystolic(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -337,7 +337,7 @@ export default function DoctorDashboard() {
                         type="number"
                         value={diastolic}
                         onChange={(e) => setDiastolic(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -349,7 +349,7 @@ export default function DoctorDashboard() {
                         type="number"
                         value={heartRate}
                         onChange={(e) => setHeartRate(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -362,7 +362,7 @@ export default function DoctorDashboard() {
                         step="0.1"
                         value={temperature}
                         onChange={(e) => setTemperature(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -374,7 +374,7 @@ export default function DoctorDashboard() {
                         type="number"
                         value={respiratoryRate}
                         onChange={(e) => setRespiratoryRate(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -387,7 +387,7 @@ export default function DoctorDashboard() {
                         step="0.1"
                         value={weight}
                         onChange={(e) => setWeight(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -400,13 +400,13 @@ export default function DoctorDashboard() {
                         step="0.1"
                         value={height}
                         onChange={(e) => setHeight(Number(e.target.value))}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-center">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">IMT / BMI</span>
-                      <span className="font-bold text-teal-700 text-sm">{bmi} kg/m²</span>
+                    <div className="bg-blue-50/70 p-2.5 rounded-xl border border-blue-100 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-bold text-slate-500">IMT / BMI</span>
+                      <span className="font-bold text-blue-700 text-sm">{bmi} kg/m²</span>
                     </div>
                   </div>
                 </div>
@@ -414,13 +414,13 @@ export default function DoctorDashboard() {
                 {/* 2. SOAP Fields */}
                 <div className="space-y-4 pt-2 border-t border-slate-100">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                    <FileText className="h-4 w-4 text-teal-600" /> Catatan Medis Terstruktur (SOAP)
+                    <FileText className="h-4 w-4 text-blue-600" /> Catatan Medis Terstruktur (SOAP)
                   </h3>
 
                   {/* S - Subjective */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      S (Subjective) - Anamnesis & Keluhan Pasien *
+                      S (Subjective) - Anamnesis &amp; Keluhan Pasien *
                     </label>
                     <textarea
                       rows={2}
@@ -428,21 +428,21 @@ export default function DoctorDashboard() {
                       value={anamnesis}
                       onChange={(e) => setAnamnesis(e.target.value)}
                       placeholder="Keluhan utama, riwayat perjalanan penyakit, durasi, dll."
-                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs focus:outline-teal-600"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                     />
                   </div>
 
                   {/* O - Objective */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      O (Objective) - Pemeriksaan Fisik & Penunjang
+                      O (Objective) - Pemeriksaan Fisik &amp; Penunjang
                     </label>
                     <textarea
                       rows={2}
                       value={physicalExam}
                       onChange={(e) => setPhysicalExam(e.target.value)}
                       placeholder="Temuan inspeksi, palpasi, perkusi, auskultasi..."
-                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs focus:outline-teal-600"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                     />
                   </div>
 
@@ -457,7 +457,7 @@ export default function DoctorDashboard() {
                         value={icd10}
                         onChange={(e) => setIcd10(e.target.value)}
                         placeholder="Contoh: J06.9, K29.7, I10"
-                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-mono uppercase focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-mono uppercase text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
 
@@ -471,7 +471,7 @@ export default function DoctorDashboard() {
                         value={diagnosis}
                         onChange={(e) => setDiagnosis(e.target.value)}
                         placeholder="Diagnosa klinis pasien..."
-                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs focus:outline-teal-600"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       />
                     </div>
                   </div>
@@ -479,28 +479,28 @@ export default function DoctorDashboard() {
                   {/* P - Plan */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      P (Plan) - Rencana Terapi & Edukasi Pasien
+                      P (Plan) - Rencana Terapi &amp; Edukasi Pasien
                     </label>
                     <textarea
                       rows={2}
                       value={therapyPlan}
                       onChange={(e) => setTherapyPlan(e.target.value)}
                       placeholder="Tindakan medis, konseling pola hidup, saran kontrol..."
-                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs focus:outline-teal-600"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                     />
                   </div>
 
                   {/* Resep Obat */}
                   <div>
-                    <label className="block text-xs font-bold text-emerald-800 mb-1 flex items-center gap-1.5">
-                      <Pill className="h-4 w-4 text-emerald-600" /> Resep Obat & Aturan Pakai (E-Prescription)
+                    <label className="block text-xs font-bold text-blue-800 mb-1 flex items-center gap-1.5">
+                      <Pill className="h-4 w-4 text-blue-600" /> Resep Obat &amp; Aturan Pakai (E-Prescription)
                     </label>
                     <textarea
                       rows={3}
                       value={prescription}
                       onChange={(e) => setPrescription(e.target.value)}
                       placeholder="Nama obat, dosis, frekuensi (contoh: Paracetamol 500mg 3x1 setelah makan)..."
-                      className="w-full rounded-xl border border-emerald-200 bg-emerald-50/20 px-3.5 py-2 text-xs font-mono focus:outline-emerald-600"
+                      className="w-full rounded-xl border border-blue-200 bg-blue-50/30 px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                     />
                   </div>
                 </div>
@@ -523,13 +523,13 @@ export default function DoctorDashboard() {
                           key={i}
                           className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs"
                         >
-                          <ImageIcon className="h-4 w-4 text-teal-600" />
+                          <ImageIcon className="h-4 w-4 text-blue-600" />
                           <span className="font-semibold text-slate-700">Lampiran #{i + 1}</span>
                           <a
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-teal-700 font-bold underline"
+                            className="text-blue-700 font-semibold underline hover:text-blue-900"
                           >
                             Lihat
                           </a>
@@ -540,22 +540,22 @@ export default function DoctorDashboard() {
                 </div>
 
                 {/* Submit Actions */}
-                <div className="pt-4 flex items-center justify-between border-t border-slate-100">
-                  <p className="text-xs text-slate-400">
+                <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100">
+                  <p className="text-xs text-slate-500">
                     Menekan tombol ini akan menandai kunjungan sebagai <strong>SELESAI</strong>.
                   </p>
 
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 text-xs shadow-md transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 text-xs shadow-sm shadow-blue-600/20 transition-all cursor-pointer whitespace-nowrap"
                   >
                     <CheckCircle2 className="h-4 w-4" />
-                    <span>Selesaikan Pemeriksaan & Simpan Rekam Medis</span>
+                    <span>Selesaikan Pemeriksaan &amp; Simpan Rekam Medis</span>
                   </button>
                 </div>
               </form>
             ) : (
-              <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
+              <div className="bg-white rounded-2xl border border-slate-200 p-12 shadow-xs text-center text-slate-400 text-sm">
                 Pilih salah satu antrean pasien di sebelah kiri untuk memulai pemeriksaan.
               </div>
             )}

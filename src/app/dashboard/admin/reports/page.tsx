@@ -108,27 +108,27 @@ export default function AdminReportsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleExportCSV}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm shadow-blue-600/20 transition-all cursor-pointer whitespace-nowrap"
             >
               <Download className="h-4 w-4" />
               <span>Ekspor ke CSV</span>
             </button>
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
-              <Printer className="h-4 w-4" />
+              <Printer className="h-4 w-4 text-slate-500" />
               <span>Cetak Laporan</span>
             </button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 Dari Tanggal
@@ -137,7 +137,7 @@ export default function AdminReportsPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -149,7 +149,7 @@ export default function AdminReportsPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -160,7 +160,7 @@ export default function AdminReportsPage() {
               <select
                 value={selectedDept}
                 onChange={(e) => setSelectedDept(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="all">Semua Poliklinik</option>
                 {departments.map((d) => (
@@ -178,7 +178,7 @@ export default function AdminReportsPage() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:outline-teal-600"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               >
                 <option value="all">Semua Status</option>
                 <option value="menunggu">Menunggu</option>
@@ -192,92 +192,102 @@ export default function AdminReportsPage() {
         </div>
 
         {/* Summary Indicators */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-white border border-slate-200">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Total Kunjungan</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{total}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-slate-500">
+              Total Kunjungan
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{total}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
-            <p className="text-[10px] uppercase font-bold text-emerald-700">Terselesaikan</p>
-            <p className="text-2xl font-black text-emerald-900 mt-1">{completed}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-emerald-700">
+              Terselesaikan
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{completed}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-cyan-50 border border-cyan-200">
-            <p className="text-[10px] uppercase font-bold text-cyan-700">Pasien Walk-in</p>
-            <p className="text-2xl font-black text-cyan-900 mt-1">{walkIns}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-blue-700">
+              Pasien Walk-in
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{walkIns}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200">
-            <p className="text-[10px] uppercase font-bold text-rose-700">Dibatalkan</p>
-            <p className="text-2xl font-black text-rose-900 mt-1">{cancelled}</p>
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <p className="text-[11px] uppercase font-semibold tracking-wider text-rose-700">
+              Dibatalkan
+            </p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">{cancelled}</p>
           </div>
         </div>
 
         {/* Report Table */}
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
-              <tr>
-                <th className="px-5 py-3.5">Tanggal</th>
-                <th className="px-5 py-3.5">Antrean</th>
-                <th className="px-5 py-3.5">Nama Pasien</th>
-                <th className="px-5 py-3.5">Poliklinik & Dokter</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5">Jenis Pendaftaran</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredAppointments.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-400">
-                    Tidak ada data yang sesuai dengan kriteria filter.
-                  </td>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Tanggal</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Antrean</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Nama Pasien</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Poliklinik &amp; Dokter</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Jenis Pendaftaran</th>
                 </tr>
-              ) : (
-                filteredAppointments.map((apt) => {
-                  const badge = getStatusBadge(apt.status);
-                  return (
-                    <tr key={apt.id} className="hover:bg-slate-50/70">
-                      <td className="px-5 py-3.5 font-mono text-slate-600">
-                        {apt.appointment_date}
-                      </td>
-                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
-                        {apt.queue_code}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="font-semibold text-slate-900">{apt.patient_name}</p>
-                        <p className="text-[10px] text-slate-400 font-mono">NIK: {apt.patient_nik || '-'}</p>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="font-semibold text-slate-800">{apt.doctor?.title}</p>
-                        <p className="text-[11px] text-teal-700">{apt.doctor?.department?.name}</p>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.badgeClass}`}
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full ${badge.dotClass}`} />
-                          <span>{badge.label}</span>
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                            apt.is_walk_in
-                              ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                              : 'bg-teal-50 text-teal-800 border border-teal-200'
-                          }`}
-                        >
-                          {apt.is_walk_in ? 'Walk-in (FO)' : 'Online Web'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredAppointments.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-10 text-slate-400">
+                      Tidak ada data yang sesuai dengan kriteria filter.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAppointments.map((apt) => {
+                    const badge = getStatusBadge(apt.status);
+                    return (
+                      <tr key={apt.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-5 py-3.5 font-mono text-slate-600 whitespace-nowrap">
+                          {apt.appointment_date}
+                        </td>
+                        <td className="px-5 py-3.5 font-mono font-bold text-blue-700 whitespace-nowrap">
+                          {apt.queue_code}
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <p className="font-semibold text-slate-900">{apt.patient_name}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">NIK: {apt.patient_nik || '-'}</p>
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <p className="font-semibold text-slate-800">{apt.doctor?.title}</p>
+                          <p className="text-[11px] text-blue-600 font-medium">{apt.doctor?.department?.name}</p>
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${badge.badgeClass}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${badge.dotClass}`} />
+                            <span>{badge.label}</span>
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${
+                              apt.is_walk_in
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-blue-50 text-blue-700 border-blue-200'
+                            }`}
+                          >
+                            {apt.is_walk_in ? 'Walk-in (FO)' : 'Online Web'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </DashboardLayout>
