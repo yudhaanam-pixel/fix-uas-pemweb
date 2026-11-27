@@ -98,7 +98,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 1. Buka [Supabase Dashboard](https://supabase.com).
 2. Masuk ke menu **SQL Editor**.
 3. Jalankan skrip `supabase/migrations/001_initial_schema.sql` untuk membuat tabel, tipe ENUM, fungsi kalkulasi kuota, dan aturan keamanan RLS.
-4. Jalankan skrip `supabase/seed.sql` untuk mengisi data awal poliklinik, dokter spesialis, jadwal praktik, dan akun demo.
+4. Jalankan skrip `supabase/migrations/002_auth_profile_signup_fields.sql` untuk menyimpan data profil pasien saat pendaftaran melalui Supabase Auth.
+5. Jalankan skrip `supabase/seed.sql` untuk mengisi data awal poliklinik, dokter spesialis, jadwal praktik, dan akun demo.
+
+Login normal dan pendaftaran pasien menggunakan Supabase Auth. Tombol **Akses Cepat Pengujian** membuat sesi demo lokal dan tidak memvalidasi kredensial Supabase.
 
 ### 4. Menjalankan Server Development
 ```bash
@@ -130,6 +133,7 @@ Untuk memudahkan evaluasi dan pengujian alur bisnis, aplikasi dilengkapi fitur *
 ```
 sim-klinik/
 ├── src/
+│   ├── proxy.ts                           # Sesi Supabase/demo & proteksi dashboard (Next.js 16)
 │   ├── app/
 │   │   ├── antrean/page.tsx                # Layar monitor TV antrean lobby
 │   │   ├── api/upload/route.ts             # API handler Cloudflare R2 upload
@@ -157,6 +161,7 @@ sim-klinik/
 │       └── database.ts                     # Definisi tipe TypeScript
 ├── supabase/
 │   ├── migrations/001_initial_schema.sql   # DDL PostgreSQL lengkap + RLS + Triggers
+│   ├── migrations/002_auth_profile_signup_fields.sql # Profil pasien saat pendaftaran Auth
 │   └── seed.sql                            # Data seed poliklinik, dokter, & jadwal
 ├── .env.example                            # Template variabel lingkungan
 └── README.md                               # Dokumentasi lengkap proyek

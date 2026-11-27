@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, getRoleDashboardUrl, detectRoleFromEmployeeCode } from '@/lib/auth-context';
+import { UserRole } from '@/types/database';
 import {
   Activity,
   AlertCircle,
@@ -48,8 +49,8 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast.error('Silakan masukkan alamat email.');
+    if (!email || !password) {
+      toast.error('Silakan masukkan alamat email dan kata sandi.');
       return;
     }
 
@@ -62,17 +63,21 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    const result = await loginWithEmail(email, password, employeeCode);
-    setIsLoading(false);
-
-    if (result.success && result.role) {
-      toast.success(`Berhasil masuk sebagai ${result.role.toUpperCase()}`);
-      router.push(getRoleDashboardUrl(result.role));
-    } else {
-      toast.error(
-        result.error ||
+    try {
+      const result = await loginWithEmail(email, password, employeeCode);
+      if (result.success && result.role) {
+        toast.success(`Berhasil masuk sebagai ${result.role.toUpperCase()}`);
+        router.push('/dashboard');
+      } else {
+        toast.error(
+          result.error ||
           'Gagal memproses login. Silakan periksa kembali data yang dimasukkan.'
-      );
+        );
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal menghubungi Supabase.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -103,6 +108,7 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@kliniksehat.id"
@@ -119,6 +125,7 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type="password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"

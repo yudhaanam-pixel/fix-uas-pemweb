@@ -34,23 +34,33 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true);
-    const success = await registerPatient({
-      fullName,
-      email,
-      phone,
-      nik,
-      gender,
-      birthDate,
-      address,
-      password: password || 'password123',
-    });
-    setIsLoading(false);
+    try {
+      const result = await registerPatient({
+        fullName,
+        email,
+        phone,
+        nik,
+        gender,
+        birthDate,
+        address,
+        password,
+      });
 
-    if (success) {
-      toast.success('Pendaftaran akun pasien berhasil! Selamat datang di SIM-Klinik.');
-      router.push('/dashboard/pasien');
-    } else {
-      toast.error('Terjadi kesalahan saat pendaftaran. Silakan coba kembali.');
+      if (result.success) {
+        if (result.requiresEmailConfirmation) {
+          toast.success('Pendaftaran berhasil. Silakan verifikasi email sebelum masuk.');
+          router.push('/auth/login');
+        } else {
+          toast.success('Pendaftaran akun pasien berhasil! Selamat datang di SIM-Klinik.');
+          router.push('/dashboard/pasien');
+        }
+      } else {
+        toast.error(result.error || 'Terjadi kesalahan saat pendaftaran. Silakan coba kembali.');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal menghubungi Supabase.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -148,11 +158,13 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Kata Sandi
+                  Kata Sandi *
                 </label>
                 <div className="relative">
                   <input
                     type="password"
+                    required
+                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimal 6 karakter"
