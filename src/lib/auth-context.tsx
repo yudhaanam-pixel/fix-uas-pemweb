@@ -43,11 +43,12 @@ export function clearAuthCookies() {
  * - Diawali '25' -> Dokter (contoh: 25001)
  * - Diawali '30' -> Petugas (contoh: 30001)
  * - Dikosongkan  -> Pasien
+ * - Diisi tapi bukan 10/25/30 -> null (invalid)
  */
 export function detectRoleFromEmployeeCode(code?: string | null): DetectedRoleResult {
   const cleanCode = code ? code.trim() : '';
 
-  // Jika kolom kode dikosongkan / tidak ada awalan khusus -> Pasien
+  // Jika kolom kode dikosongkan -> Pasien
   if (!cleanCode) {
     return { role: 'pasien', cleanCode };
   }
@@ -67,60 +68,13 @@ export function detectRoleFromEmployeeCode(code?: string | null): DetectedRoleRe
     return { role: 'petugas', cleanCode };
   }
 
-  // Format awalan tidak dikenali
+  // Format awalan tidak dikenali -> GAGAL (null)
   return {
     role: null,
     cleanCode,
     error:
       'Kode akses tidak valid. Awalan kode harus berupa "10" (Admin), "25" (Dokter), "30" (Petugas), atau kosongkan untuk Pasien.',
   };
-}
-
-/**
- * Validasi Ketat Kode Akses / ID Pegawai berdasarkan peran (Role):
- * - Admin   : Wajib diawali "10". Error: "Kode akses tidak valid untuk Admin"
- * - Dokter  : Wajib diawali "25". Error: "Kode akses tidak valid untuk Dokter"
- * - Petugas : Wajib diawali "30". Error: "Kode akses tidak valid untuk Petugas"
- * - Pasien  : Tidak boleh menggunakan kode staf (10, 25, 30).
- */
-export function validateEmployeeCode(
-  role: UserRole,
-  code?: string | null
-): { isValid: boolean; error?: string } {
-  const cleanCode = code ? code.trim() : '';
-
-  if (role === 'admin') {
-    if (!cleanCode || !cleanCode.startsWith('10')) {
-      return {
-        isValid: false,
-        error: 'Kode akses tidak valid untuk Admin',
-      };
-    }
-  } else if (role === 'dokter') {
-    if (!cleanCode || !cleanCode.startsWith('25')) {
-      return {
-        isValid: false,
-        error: 'Kode akses tidak valid untuk Dokter',
-      };
-    }
-  } else if (role === 'petugas') {
-    if (!cleanCode || !cleanCode.startsWith('30')) {
-      return {
-        isValid: false,
-        error: 'Kode akses tidak valid untuk Petugas',
-      };
-    }
-  } else if (role === 'pasien') {
-    // Pasien sama sekali tidak diizinkan masuk jika memasukkan kode staf
-    if (cleanCode.startsWith('10') || cleanCode.startsWith('25') || cleanCode.startsWith('30')) {
-      return {
-        isValid: false,
-        error: 'Kode akses tidak valid untuk Pasien. Akun Pasien tidak diizinkan menggunakan kode staf internal.',
-      };
-    }
-  }
-
-  return { isValid: true };
 }
 
 interface AuthContextType {
@@ -211,19 +165,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: 'Silakan masukkan alamat email.' };
       }
 
-      // 1. Deteksi Role secara dinamis dari Awalan Kode Pegawai
+      // ═══════════════════════════════════════════════════════════════
+      // 1. DETEKSI ROLE DARI KODE PEGAWAI — INI YANG MENENTUKAN ROLE
+      //    Kode ini TIDAK BOLEH di-override oleh data profil lama.
+      // ═══════════════════════════════════════════════════════════════
       const detection = detectRoleFromEmployeeCode(employeeCode);
-      if (!detection.role) {
+
+      // Jika kode diisi tapi awalan tidak valid -> TOLAK LOGIN
+      if (detection.role === null) {
         return {
           success: false,
           error: detection.error,
         };
       }
 
-      const detectedRole = detection.role;
+      // Role FINAL yang akan digunakan untuk sesi ini
+      const finalRole: UserRole = detection.role;
       const cleanCode = detection.cleanCode;
 
-      // 2. Jika Supabase terkonfigurasi, coba autentikasi Supabase Auth
+      // ═══════════════════════════════════════════════════════════════
+      // 2. SUPABASE AUTH (jika terkonfigurasi)
+      // ═══════════════════════════════════════════════════════════════
       if (isSupabaseConfigured) {
         try {
           const supabase = createClient();
@@ -233,132 +195,125 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
 
           if (!error && data.user) {
+            // Buat/update profil dengan role DARI KODE, bukan dari metadata lama
             const profiles = ClinicService.getProfiles();
-            let targetUser = profiles.find((p) => p.email?.toLowerCase() === cleanEmail.toLowerCase());
+            const existingIdx = profiles.findIndex(
+              (p) => p.email?.toLowerCase() === cleanEmail.toLowerCase()
+            );
 
-            if (!targetUser) {
-              targetUser = {
-                id: data.user.id,
-                email: data.user.email || cleanEmail,
-                full_name: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
-                role: (data.user.user_metadata?.role as UserRole) || detectedRole,
-                employee_code: cleanCode || null,
-                kode_pegawai: cleanCode || null,
-                avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80',
-              };
-              profiles.push(targetUser);
-              localStorage.setItem('sim_klinik_profiles', JSON.stringify(profiles));
+            const sessionUser: Profile = existingIdx !== -1
+              ? {
+                  ...profiles[existingIdx],
+                  role: finalRole, // PAKSA role dari deteksi kode
+                  employee_code: cleanCode || null,
+                  kode_pegawai: cleanCode || null,
+                }
+              : {
+                  id: data.user.id,
+                  email: data.user.email || cleanEmail,
+                  full_name: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
+                  role: finalRole, // PAKSA role dari deteksi kode
+                  employee_code: cleanCode || null,
+                  kode_pegawai: cleanCode || null,
+                  avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80',
+                };
+
+            // Simpan/update ke localStorage
+            if (existingIdx !== -1) {
+              profiles[existingIdx] = sessionUser;
+            } else {
+              profiles.push(sessionUser);
             }
+            localStorage.setItem('sim_klinik_profiles', JSON.stringify(profiles));
 
-            // Validasi kecocokan role untuk akun staf internal
-            if (targetUser.role !== 'pasien' && !cleanCode) {
-              await supabase.auth.signOut();
-              const roleLabel =
-                targetUser.role === 'dokter'
-                  ? 'Dokter (awalan 25)'
-                  : targetUser.role === 'admin'
-                  ? 'Admin (awalan 10)'
-                  : 'Petugas (awalan 30)';
-              return {
-                success: false,
-                role: targetUser.role,
-                error: `Kode ID untuk ${targetUser.role.toUpperCase()} harus diawali dengan angka yang sesuai (${roleLabel}).`,
-              };
-            }
-
-            if (targetUser.role !== detectedRole) {
-              await supabase.auth.signOut();
-              const requiredPrefix =
-                targetUser.role === 'dokter'
-                  ? '25'
-                  : targetUser.role === 'admin'
-                  ? '10'
-                  : targetUser.role === 'petugas'
-                  ? '30'
-                  : 'kosong';
-              return {
-                success: false,
-                role: targetUser.role,
-                error: `Kode ID untuk ${targetUser.role.toUpperCase()} harus diawali dengan angka ${requiredPrefix}.`,
-              };
-            }
-
-            setUser(targetUser);
-            localStorage.setItem(AUTH_STORAGE_KEY, targetUser.id);
-            return { success: true, role: targetUser.role };
+            setUser(sessionUser);
+            localStorage.setItem(AUTH_STORAGE_KEY, sessionUser.id);
+            setAuthCookies(sessionUser);
+            return { success: true, role: finalRole };
           }
         } catch {
-          // Lanjutkan ke alur autentikasi dinamis di bawah
+          // Lanjutkan ke alur autentikasi lokal di bawah
         }
       }
 
-      // 3. Cek apakah email terdaftar di data profil lokal / demo
+      // ═══════════════════════════════════════════════════════════════
+      // 3. CARI PROFIL LOKAL BERDASARKAN EMAIL
+      //    Role di profil lama TIDAK menentukan — yang menentukan
+      //    adalah `finalRole` dari deteksi kode pegawai.
+      // ═══════════════════════════════════════════════════════════════
       const profiles = ClinicService.getProfiles();
-      let targetUser = profiles.find((p) => p.email?.toLowerCase() === cleanEmail.toLowerCase());
-      if (!targetUser) {
-        targetUser = DEMO_PROFILES.find((p) => p.email?.toLowerCase() === cleanEmail.toLowerCase());
+      let existingProfile = profiles.find(
+        (p) => p.email?.toLowerCase() === cleanEmail.toLowerCase()
+      );
+      if (!existingProfile) {
+        existingProfile = DEMO_PROFILES.find(
+          (p) => p.email?.toLowerCase() === cleanEmail.toLowerCase()
+        );
       }
 
-      if (targetUser) {
-        // Strict role gating dengan pesan error spesifik per peran
-        const validation = validateEmployeeCode(targetUser.role, cleanCode);
-        if (!validation.isValid) {
-          return {
-            success: false,
-            role: targetUser.role,
-            error: validation.error,
-          };
-        }
-
-        // Update employee_code pada sesi pengguna
+      if (existingProfile) {
+        // Buat sesi dengan role DARI KODE, bukan role lama di profil
         const sessionUser: Profile = {
-          ...targetUser,
-          employee_code: cleanCode || targetUser.employee_code || null,
-          kode_pegawai: cleanCode || targetUser.kode_pegawai || null,
+          ...existingProfile,
+          role: finalRole,
+          employee_code: cleanCode || existingProfile.employee_code || null,
+          kode_pegawai: cleanCode || existingProfile.kode_pegawai || null,
         };
 
         setUser(sessionUser);
         localStorage.setItem(AUTH_STORAGE_KEY, sessionUser.id);
         setAuthCookies(sessionUser);
-        return { success: true, role: sessionUser.role };
+
+        // Update profil di localStorage agar sinkron
+        const allProfiles = ClinicService.getProfiles();
+        const idx = allProfiles.findIndex((p) => p.id === sessionUser.id);
+        if (idx !== -1) {
+          allProfiles[idx] = sessionUser;
+          localStorage.setItem('sim_klinik_profiles', JSON.stringify(allProfiles));
+        }
+
+        return { success: true, role: finalRole };
       }
 
-      // 4. AUTENTIKASI DINAMIS (BEBAS EMAIL & PASSWORD)
-      // Jangan tolak email baru! Buat user session secara dinamis berdasarkan role yang terdeteksi dari kode
-      const namePart = cleanEmail.split('@')[0]
+      // ═══════════════════════════════════════════════════════════════
+      // 4. AUTENTIKASI DINAMIS (email baru, belum terdaftar)
+      //    Buat profil baru dengan role dari deteksi kode pegawai.
+      // ═══════════════════════════════════════════════════════════════
+      const namePart = cleanEmail
+        .split('@')[0]
         .replace(/[._-]/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
       const dynamicFullName =
-        detectedRole === 'dokter'
+        finalRole === 'dokter'
           ? `dr. ${namePart}`
-          : detectedRole === 'admin'
+          : finalRole === 'admin'
           ? `${namePart} (Administrator)`
-          : detectedRole === 'petugas'
+          : finalRole === 'petugas'
           ? `${namePart} (Petugas FO)`
           : namePart;
 
       const dynamicAvatar =
-        detectedRole === 'dokter'
+        finalRole === 'dokter'
           ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&q=80'
-          : detectedRole === 'admin'
+          : finalRole === 'admin'
           ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80'
-          : detectedRole === 'petugas'
+          : finalRole === 'petugas'
           ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80'
           : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80';
 
       const dynamicUser: Profile = {
-        id: `user-${detectedRole}-${Date.now()}`,
+        id: `user-${finalRole}-${Date.now()}`,
         email: cleanEmail,
         full_name: dynamicFullName,
-        role: detectedRole,
+        role: finalRole,
         employee_code: cleanCode || null,
         kode_pegawai: cleanCode || null,
         avatar_url: dynamicAvatar,
         created_at: new Date().toISOString(),
       };
 
-      // Simpan ke profil lokal agar tersinkronisasi di dashboard
+      // Simpan ke profil lokal
       profiles.push(dynamicUser);
       if (typeof window !== 'undefined') {
         try {
@@ -371,7 +326,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(dynamicUser);
       localStorage.setItem(AUTH_STORAGE_KEY, dynamicUser.id);
       setAuthCookies(dynamicUser);
-      return { success: true, role: dynamicUser.role };
+      return { success: true, role: finalRole };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal memproses login';
       return { success: false, error: msg };

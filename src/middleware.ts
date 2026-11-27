@@ -26,28 +26,35 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // 2. Strict gating for Admin dashboard (/dashboard/admin)
+    // 2. Bare /dashboard — redirect to the correct role dashboard
+    if (pathname === '/dashboard' || pathname === '/dashboard/') {
+      const dashboardUrl = new URL(`/dashboard/${roleCookie}`, request.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
+
+    // 3. Strict gating for Admin dashboard (/dashboard/admin)
     if (pathname.startsWith('/dashboard/admin') && roleCookie !== 'admin') {
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('auth_error', 'forbidden_admin');
       return NextResponse.redirect(loginUrl);
     }
 
-    // 3. Strict gating for Dokter dashboard (/dashboard/dokter)
+    // 4. Strict gating for Dokter dashboard (/dashboard/dokter)
     if (pathname.startsWith('/dashboard/dokter') && roleCookie !== 'dokter') {
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('auth_error', 'forbidden_dokter');
       return NextResponse.redirect(loginUrl);
     }
 
-    // 4. Strict gating for Petugas dashboard (/dashboard/petugas)
+    // 5. Strict gating for Petugas dashboard (/dashboard/petugas)
     if (pathname.startsWith('/dashboard/petugas') && roleCookie !== 'petugas') {
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('auth_error', 'forbidden_petugas');
       return NextResponse.redirect(loginUrl);
     }
 
-    // 5. Strict gating for Pasien dashboard (/dashboard/pasien)
+    // 6. Strict gating for Pasien dashboard (/dashboard/pasien)
+    //    Admin juga boleh akses dashboard pasien (untuk support/debugging)
     if (pathname.startsWith('/dashboard/pasien') && roleCookie !== 'pasien' && roleCookie !== 'admin') {
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('auth_error', 'forbidden_pasien');
@@ -63,4 +70,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
-

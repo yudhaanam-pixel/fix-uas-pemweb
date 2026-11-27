@@ -53,6 +53,14 @@ export default function LoginPage() {
       return;
     }
 
+    // Validasi prefix kode pegawai di sisi klien sebelum request
+    if (employeeCode.trim() && roleDetection.role === null) {
+      toast.error(
+        'Kode akses tidak valid! Gunakan awalan 10 (Admin), 25 (Dokter), 30 (Petugas), atau kosongkan untuk Pasien.'
+      );
+      return;
+    }
+
     setIsLoading(true);
     const result = await loginWithEmail(email, password, employeeCode);
     setIsLoading(false);
