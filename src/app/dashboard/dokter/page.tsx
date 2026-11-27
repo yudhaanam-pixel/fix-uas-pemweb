@@ -228,8 +228,8 @@ export default function DoctorDashboard() {
                       key={apt.id}
                       onClick={() => handleSelectPatient(apt)}
                       className={`p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
-                          ? 'bg-blue-50/70 border-blue-500 shadow-sm'
-                          : 'bg-white border-slate-200 hover:border-slate-300'
+                        ? 'bg-blue-50/70 border-blue-500 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
