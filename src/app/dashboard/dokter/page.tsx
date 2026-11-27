@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { useAuth } from '@/lib/auth-context';
+import { isDemoSession, useAuth } from '@/lib/auth-context';
 import { ClinicService } from '@/lib/clinic-service';
 import { Appointment, Doctor, MedicalRecord } from '@/types/database';
 import { formatDateIndo, formatTimeIndo, getStatusBadge } from '@/lib/utils';
@@ -24,6 +24,7 @@ import {
   Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
@@ -49,38 +50,81 @@ export default function DoctorDashboard() {
   const [doctorNotes, setDoctorNotes] = useState<string>('');
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
   const [todayStr, setTodayStr] = useState<string>('');
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setTodayStr(today);
+    let cancelled = false;
+    const useSupabase = isSupabaseConfigured && !isDemoSession();
+    const refreshData = async () => {
+      if (!user) return;
+      const today = new Date().toISOString().split('T')[0];
+      setTodayStr(today);
 
-    const refreshData = () => {
-      const doctors = ClinicService.getDoctors();
-      // Match doctor with user if linked, or default to dr. Budi
-      const matchedDoc = doctors.find((d) => d.name.includes(user?.full_name?.split(',')[0] || 'dr. Budi')) || doctors[0];
-      setCurrentDoctor(matchedDoc);
+      try {
+        if (useSupabase) {
+          const { appointments: allAppointments, doctors } =
+            await ClinicService.getAppointmentsWithRelationsFromSupabase(today);
+          const userName = (user?.full_name || '').split(',')[0].trim().toLowerCase();
+          const matchedDoctor =
+            doctors.find((doctor) => doctor.user_id === user?.id) ||
+            doctors.find((doctor) => {
+              const doctorName = doctor.name.trim().toLowerCase();
+              return doctorName.includes(userName) || userName.includes(doctorName);
+            });
+          const visibleAppointments = matchedDoctor
+            ? allAppointments.filter((appointment) => appointment.doctor_id === matchedDoctor.id)
+            : allAppointments;
 
-      const all = ClinicService.getAppointments().filter(
-        (a) => a.appointment_date === today && a.doctor_id === matchedDoc.id
-      );
-      setAppointments(all);
+          if (cancelled) return;
+          setCurrentDoctor(matchedDoctor || visibleAppointments[0]?.doctor || doctors[0] || null);
+          setAppointments(visibleAppointments);
+          const activeAppointment =
+            visibleAppointments.find((appointment) => appointment.status === 'diperiksa' || appointment.status === 'check_in') ||
+            visibleAppointments[0];
+          setSelectedAppointment(activeAppointment || null);
+          if (activeAppointment) setAnamnesis(activeAppointment.complaint || '');
+          return;
+        }
 
-      // Auto select the first checked_in or in-examination patient
-      setSelectedAppointment((prev) => {
-        if (prev || all.length === 0) return prev;
-        const active = all.find((a) => a.status === 'diperiksa' || a.status === 'check_in') || all[0];
-        setAnamnesis(active.complaint || '');
-        return active;
-      });
+        const doctors = ClinicService.getDoctors();
+        const matchedDoc =
+          doctors.find((doctor) => doctor.name.includes(user?.full_name?.split(',')[0] || 'dr. Budi')) ||
+          doctors[0];
+        if (!matchedDoc || cancelled) return;
+        setCurrentDoctor(matchedDoc);
+
+        const all = ClinicService.getAppointments().filter(
+          (appointment) => appointment.appointment_date === today && appointment.doctor_id === matchedDoc.id
+        );
+        setAppointments(all);
+        setSelectedAppointment((previous) => {
+          if (previous || all.length === 0) return previous;
+          const active = all.find((appointment) => appointment.status === 'diperiksa' || appointment.status === 'check_in') || all[0];
+          setAnamnesis(active.complaint || '');
+          return active;
+        });
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : 'Gagal memuat antrean pasien.';
+        setAppointments([]);
+        setSelectedAppointment(null);
+        toast.error(message);
+      }
     };
 
-    refreshData();
-    window.addEventListener('clinic_data_updated', refreshData);
-    return () => window.removeEventListener('clinic_data_updated', refreshData);
+    void refreshData();
+    if (!useSupabase) {
+      window.addEventListener('clinic_data_updated', refreshData);
+    }
+    return () => {
+      cancelled = true;
+      window.removeEventListener('clinic_data_updated', refreshData);
+    };
   }, [user]);
 
   // Handle select patient
   const handleSelectPatient = (apt: Appointment) => {
+    if (apt.doctor) setCurrentDoctor(apt.doctor);
     setSelectedAppointment(apt);
     setAnamnesis(apt.complaint || '');
 
@@ -129,39 +173,59 @@ export default function DoctorDashboard() {
   };
 
   // Submit Medical Record & Complete Appointment
-  const handleSaveMedicalRecord = (e: React.FormEvent) => {
+  const handleSaveMedicalRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAppointment || !currentDoctor) return;
+    if (!selectedAppointment || (!currentDoctor && !selectedAppointment.doctor)) return;
 
     if (!anamnesis || !diagnosis) {
       toast.error('Kolom Anamnesis dan Diagnosa wajib diisi.');
       return;
     }
 
-    const saved = ClinicService.saveMedicalRecord({
-      appointment_id: selectedAppointment.id,
-      patient_id: selectedAppointment.patient_id || 'user-pasien',
-      doctor_id: currentDoctor.id,
-      systolic,
-      diastolic,
-      heart_rate: heartRate,
-      respiratory_rate: respiratoryRate,
-      temperature,
-      weight,
-      height,
-      anamnesis,
-      physical_examination: physicalExam,
-      diagnosis_icd10: icd10,
-      diagnosis_description: diagnosis,
-      therapy_plan: therapyPlan,
-      prescription_text: prescription,
-      attachment_urls: attachmentUrls,
-      doctor_notes: doctorNotes,
-    });
+    setIsSavingRecord(true);
+    try {
+      const useSupabase = isSupabaseConfigured && !isDemoSession();
+      const saved = await ClinicService.saveMedicalRecord({
+        appointment_id: selectedAppointment.id,
+        patient_id: selectedAppointment.patient_id || 'user-pasien',
+        doctor_id: selectedAppointment.doctor_id,
+        systolic,
+        diastolic,
+        heart_rate: heartRate,
+        respiratory_rate: respiratoryRate,
+        temperature,
+        weight,
+        height,
+        anamnesis,
+        physical_examination: physicalExam,
+        diagnosis_icd10: icd10,
+        diagnosis_description: diagnosis,
+        therapy_plan: therapyPlan,
+        prescription_text: prescription,
+        attachment_urls: attachmentUrls,
+        doctor_notes: doctorNotes,
+      }, useSupabase);
 
-    toast.success(
-      `Pemeriksaan pasien ${selectedAppointment.patient_name} selesai & rekam medis tersimpan!`
-    );
+      const completedAppointment = {
+        ...selectedAppointment,
+        status: 'selesai' as const,
+        completed_time: new Date().toISOString(),
+        medical_record: saved,
+      };
+      setAppointments((previous) =>
+        previous.map((appointment) =>
+          appointment.id === completedAppointment.id ? completedAppointment : appointment
+        )
+      );
+      setSelectedAppointment(completedAppointment);
+      toast.success(
+        `Pemeriksaan pasien ${selectedAppointment.patient_name} selesai & rekam medis tersimpan!`
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal menyimpan rekam medis.');
+    } finally {
+      setIsSavingRecord(false);
+    }
   };
 
   // BMI Calculation
@@ -547,10 +611,11 @@ export default function DoctorDashboard() {
 
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 text-xs shadow-sm shadow-blue-600/20 transition-all cursor-pointer whitespace-nowrap"
+                    disabled={isSavingRecord}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-wait text-white font-semibold px-6 py-2.5 text-xs shadow-sm shadow-blue-600/20 transition-all cursor-pointer whitespace-nowrap"
                   >
                     <CheckCircle2 className="h-4 w-4" />
-                    <span>Selesaikan Pemeriksaan &amp; Simpan Rekam Medis</span>
+                    <span>{isSavingRecord ? 'Menyimpan Rekam Medis...' : 'Selesaikan Pemeriksaan &amp; Simpan Rekam Medis'}</span>
                   </button>
                 </div>
               </form>

@@ -201,6 +201,62 @@ export const ClinicService = {
     }));
   },
 
+  async getAppointmentsWithRelationsFromSupabase(
+    appointmentDate: string
+  ): Promise<{ appointments: Appointment[]; doctors: Doctor[] }> {
+    const supabase = createClient();
+    const [appointmentsResult, doctorsResult] = await Promise.all([
+      supabase
+        .from('appointments')
+        .select('*')
+        .eq('appointment_date', appointmentDate)
+        .order('queue_number'),
+      supabase.from('doctors').select('*'),
+    ]);
+
+    if (appointmentsResult.error) {
+      throw new Error(`Gagal memuat antrean Supabase: ${appointmentsResult.error.message}`);
+    }
+    if (doctorsResult.error) {
+      throw new Error(`Gagal memuat data dokter Supabase: ${doctorsResult.error.message}`);
+    }
+
+    const appointments = (appointmentsResult.data || []) as Appointment[];
+    const doctors = (doctorsResult.data || []) as Doctor[];
+    const patientIds = [...new Set(
+      appointments.flatMap((appointment) => appointment.patient_id ? [appointment.patient_id] : [])
+    )];
+    const appointmentIds = appointments.map((appointment) => appointment.id);
+
+    const [profilesResult, recordsResult] = await Promise.all([
+      patientIds.length
+        ? supabase.from('profiles').select('*').in('id', patientIds)
+        : Promise.resolve({ data: [], error: null }),
+      appointmentIds.length
+        ? supabase.from('medical_records').select('*').in('appointment_id', appointmentIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (profilesResult.error) {
+      throw new Error(`Gagal memuat profil pasien: ${profilesResult.error.message}`);
+    }
+    if (recordsResult.error) {
+      throw new Error(`Gagal memuat rekam medis antrean: ${recordsResult.error.message}`);
+    }
+
+    const profiles = (profilesResult.data || []) as Profile[];
+    const medicalRecords = (recordsResult.data || []) as MedicalRecord[];
+    return {
+      doctors,
+      appointments: appointments.map((appointment) => ({
+        ...appointment,
+        doctor: doctors.find((doctor) => doctor.id === appointment.doctor_id),
+        patient: profiles.find((profile) => profile.id === appointment.patient_id),
+        medical_record: medicalRecords.find((record) => record.appointment_id === appointment.id),
+      })),
+    };
+  },
+
   bookAppointment(params: {
     patient_id?: string | null;
     patient_name: string;
@@ -354,7 +410,77 @@ export const ClinicService = {
       }));
   },
 
-  saveMedicalRecord(recordData: Omit<MedicalRecord, 'id' | 'created_at'>): MedicalRecord {
+  async saveMedicalRecord(
+    recordData: Omit<MedicalRecord, 'id' | 'created_at'>,
+    useSupabase = false
+  ): Promise<MedicalRecord> {
+    if (useSupabase) {
+      const supabase = createClient();
+      const { data: appointmentData, error: appointmentError } = await supabase
+        .from('appointments')
+        .select('id,patient_id,doctor_id')
+        .eq('id', recordData.appointment_id)
+        .maybeSingle();
+
+      if (appointmentError) {
+        throw new Error(`Gagal memvalidasi antrean: ${appointmentError.message}`);
+      }
+      if (!appointmentData) {
+        throw new Error('Antrean pasien tidak ditemukan di Supabase. Muat ulang halaman dan pilih antrean yang valid.');
+      }
+
+      const appointment = appointmentData as Pick<Appointment, 'id' | 'patient_id' | 'doctor_id'>;
+      const patientId = appointment.patient_id || recordData.patient_id;
+      if (!patientId) {
+        throw new Error('Rekam medis tidak dapat disimpan karena antrean belum terhubung ke profil pasien.');
+      }
+
+      const now = new Date().toISOString();
+      const { data: savedData, error: saveError } = await supabase
+        .from('medical_records')
+        .upsert(
+          {
+            appointment_id: appointment.id,
+            patient_id: patientId,
+            doctor_id: appointment.doctor_id,
+            systolic: recordData.systolic ?? null,
+            diastolic: recordData.diastolic ?? null,
+            heart_rate: recordData.heart_rate ?? null,
+            respiratory_rate: recordData.respiratory_rate ?? null,
+            temperature: recordData.temperature ?? null,
+            weight: recordData.weight ?? null,
+            height: recordData.height ?? null,
+            anamnesis: recordData.anamnesis,
+            physical_examination: recordData.physical_examination ?? null,
+            diagnosis_icd10: recordData.diagnosis_icd10 ?? null,
+            diagnosis_description: recordData.diagnosis_description,
+            therapy_plan: recordData.therapy_plan ?? null,
+            prescription_text: recordData.prescription_text ?? null,
+            attachment_urls: recordData.attachment_urls ?? [],
+            doctor_notes: recordData.doctor_notes ?? null,
+            updated_at: now,
+          },
+          { onConflict: 'appointment_id' }
+        )
+        .select('*')
+        .single();
+
+      if (saveError) {
+        throw new Error(`Gagal menyimpan rekam medis ke Supabase: ${saveError.message}`);
+      }
+
+      const { error: appointmentUpdateError } = await supabase
+        .from('appointments')
+        .update({ status: 'selesai', completed_time: now })
+        .eq('id', appointment.id);
+
+      if (appointmentUpdateError) {
+        throw new Error(`Rekam medis tersimpan, tetapi status antrean gagal diperbarui: ${appointmentUpdateError.message}`);
+      }
+
+      return savedData as MedicalRecord;
+    }
+
     const records = getStorage<MedicalRecord[]>(STORAGE_KEYS.MEDICAL_RECORDS, INITIAL_MEDICAL_RECORDS);
     const existingIndex = records.findIndex((r) => r.appointment_id === recordData.appointment_id);
 

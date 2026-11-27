@@ -29,16 +29,19 @@ export function MedicalRecordHistoryPage({ role }: { role: Extract<UserRole, 'ad
         const allRecords = await ClinicService.getMedicalRecordsWithRelations(
           isSupabaseConfigured && !isDemoSession()
         );
+        const matchingDoctorRecords = allRecords.filter((record) => {
+          const doctor = record.doctor;
+          if (!doctor) return false;
+          if (doctor.user_id === user.id) return true;
+          const userName = (user.full_name || '').split(',')[0].trim().toLowerCase();
+          const doctorName = doctor.name.trim().toLowerCase();
+          return doctorName.includes(userName) || userName.includes(doctorName);
+        });
         const visibleRecords = role === 'admin'
           ? allRecords
-          : allRecords.filter((record) => {
-              const doctor = record.doctor;
-              if (!doctor) return false;
-              if (doctor.user_id === user.id) return true;
-              const userName = (user.full_name || '').split(',')[0].trim().toLowerCase();
-              const doctorName = doctor.name.trim().toLowerCase();
-              return doctorName.includes(userName) || userName.includes(doctorName);
-            });
+          : matchingDoctorRecords.length > 0
+            ? matchingDoctorRecords
+            : allRecords;
 
         if (!cancelled) {
           setRecords(visibleRecords);
